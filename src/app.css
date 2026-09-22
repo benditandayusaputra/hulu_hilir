@@ -174,3 +174,85 @@
 		scroll-behavior: auto !important;
 	}
 }
+
+@layer base {
+	dialog[open] {
+		animation: dialog-in var(--dur-base) var(--ease-out);
+	}
+
+	@keyframes dialog-in {
+		from {
+			opacity: 0;
+			transform: scale(0.96);
+		}
+	}
+}
+
+@layer components {
+	.tile-grid {
+		--tile-size: 56px;
+		--water-min: 40px;
+	}
+
+	@media (min-width: 360px) {
+		.tile-grid {
+			--tile-size: 64px;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.tile-grid {
+			--tile-size: 88px;
+		}
+	}
+
+	.flow-particles {
+		animation: flow-down var(--flow-duration, 3s) linear infinite;
+	}
+
+	.flow-chevrons {
+		display: none;
+	}
+
+	.fish-swim {
+		animation: fish-swim 4s ease-in-out infinite alternate;
+	}
+
+	[data-paused] .flow-particles,
+	[data-paused] .fish-swim {
+		animation-play-state: paused;
+	}
+
+	@keyframes flow-down {
+		to {
+			transform: translateY(var(--flow-distance, 48px));
+		}
+	}
+
+	@keyframes fish-swim {
+		from {
+			transform: translateX(-3px);
+		}
+		to {
+			transform: translateX(3px);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:root:not([data-motion='full']) .flow-particles {
+			display: none;
+		}
+
+		:root:not([data-motion='full']) .flow-chevrons {
+			display: block;
+		}
+	}
+
+	:root[data-motion='reduced'] .flow-particles {
+		display: none;
+	}
+
+	:root[data-motion='reduced'] .flow-chevrons {
+		display: block;
+	}
+}

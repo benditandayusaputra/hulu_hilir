@@ -5,7 +5,9 @@ export const ui = {
 	mainNavLabel: 'Utama',
 	footerNavLabel: 'Footer',
 	home: 'Beranda',
+	lab: 'Lab',
 	settings: 'Pengaturan',
+	help: 'Bantuan',
 	close: 'Tutup',
 	loading: 'Memuat',
 	copyright: 'Hulu Hilir, karya siswa untuk belajar mutu air sungai.'

@@ -3,15 +3,25 @@
 	import { ui } from '$lib/content/ui';
 	import Button from './Button.svelte';
 
+	type Side = 'center' | 'bottom' | 'right';
+
 	interface Props {
 		open: boolean;
 		title: string;
 		description?: string;
+		side?: Side;
 		children: Snippet;
-		footer?: Snippet;
+		footer?: Snippet | undefined;
 	}
 
-	let { open = $bindable(), title, description = '', children, footer }: Props = $props();
+	let {
+		open = $bindable(),
+		title,
+		description = '',
+		side = 'center',
+		children,
+		footer
+	}: Props = $props();
 
 	let element = $state<HTMLDialogElement | null>(null);
 	let heading = $state<HTMLHeadingElement | null>(null);
@@ -19,6 +29,14 @@
 	const baseId = $props.id();
 	const titleId = `${baseId}-title`;
 	const descriptionId = `${baseId}-description`;
+
+	const sideClass: Record<Side, string> = {
+		center:
+			'm-auto w-[min(32rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] rounded-[var(--radius-card)]',
+		bottom:
+			'mx-auto mt-auto mb-0 w-full max-w-[40rem] max-h-[85dvh] rounded-t-[var(--radius-card)]',
+		right: 'my-0 mr-0 ml-auto h-dvh max-h-dvh w-[min(24rem,100vw)] rounded-l-[var(--radius-card)]'
+	};
 
 	$effect(() => {
 		const dialog = element;
@@ -38,7 +56,9 @@
 	aria-labelledby={titleId}
 	aria-describedby={description === '' ? undefined : descriptionId}
 	onclose={() => (open = false)}
-	class="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-6 text-ink backdrop:bg-black/50"
+	class="overflow-auto border-[1.5px] border-ink/10 bg-surface p-6 text-ink backdrop:bg-black/50 {sideClass[
+		side
+	]}"
 >
 	<div class="flex items-start justify-between gap-4">
 		<h2
