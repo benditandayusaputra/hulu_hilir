@@ -14,11 +14,21 @@ pnpm dev
 ```sh
 pnpm dev
 pnpm check
+pnpm lint
+pnpm check:no-comments
+pnpm test:unit
+pnpm test:e2e
+pnpm test:a11y
+pnpm verify
 pnpm build
 pnpm preview
 ```
 
-Skrip pengujian dan pemeriksaan (`pnpm lint`, `pnpm test:unit`, `pnpm test:e2e`, `pnpm test:a11y`, `pnpm verify`) ditambahkan pada tahap F0.
+`pnpm verify` menjalankan semuanya dan wajib hijau sebelum commit.
+
+## Lab Bebas
+
+Halaman `/lab` memakai mesin simulasi lewat `SimulationSession` (`src/lib/state/simulation.svelte.ts`). Panggung sungai adalah grid HTML dengan petak sebagai tombol sungguhan, satu tab stop dengan roving tabindex, nama petak dan sel air mengikuti pola pembaca layar di spesifikasi, dan pintasan satu huruf (P, N, 1 sampai 3, I, T, ?) yang bisa dimatikan di Pengaturan. Palet alat, panel aksi, kontrol waktu, indikator, inspektor segmen, Tampilan Tabel, dan grafik riwayat tersusun ulang di tiga lebar layar: lembar di ponsel, tab di tablet, tiga kolom di desktop. Preset awal dipilih lewat `?preset=alami|desa|kota-padat|lahan-kosong`. Keputusan desainnya dicatat di [docs/ARSITEKTUR.md](docs/ARSITEKTUR.md).
 
 ## Mesin simulasi
 
