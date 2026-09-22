@@ -1,0 +1,35 @@
+#!/bin/sh
+set -e
+
+msg_file="$1"
+subject=$(sed -n '1p' "$msg_file")
+body=$(sed '1d' "$msg_file" | grep -v '^#' || true)
+full=$(printf '%s\n%s' "$subject" "$body")
+
+fail() {
+	echo "commit-msg ditolak: $1" >&2
+	echo "Pesan: $subject" >&2
+	exit 1
+}
+
+case "$subject" in
+	fixup!*|squash!*) exit 0 ;;
+esac
+
+if ! printf '%s' "$subject" | grep -Eq '^:[a-z0-9_]+: [A-Z]'; then
+	fail "baris pertama harus ':gitmoji: Kalimat imperatif bahasa Indonesia'"
+fi
+
+if [ "${#subject}" -gt 72 ]; then
+	fail "baris pertama ${#subject} karakter, maksimal 72"
+fi
+
+if printf '%s' "$full" | grep -q '—'; then
+	fail "em dash tidak boleh dipakai"
+fi
+
+if printf '%s' "$full" | grep -Eiq 'co-authored-by|claude|generated with|anthropic|copilot|chatgpt'; then
+	fail "jejak alat AI tidak boleh ada di pesan commit"
+fi
+
+exit 0
