@@ -272,13 +272,26 @@ export function assessRiver(
 	return { segments, floodRisk: floodRiskScore(flood.stressRatios), robFlood: flood.robFlood };
 }
 
-function acceptActions(state: SimState, actions: readonly Action[], month: number): SimState {
+interface AcceptedActions {
+	state: SimState;
+	accepted: Action[];
+}
+
+function acceptActions(
+	state: SimState,
+	actions: readonly Action[],
+	month: number
+): AcceptedActions {
 	let working = state;
+	const accepted: Action[] = [];
 	for (const action of actions) {
-		const result = applyAction(working, { ...action, month });
-		if (result.ok) working = result.value;
+		const stamped = { ...action, month };
+		const result = applyAction(working, stamped);
+		if (!result.ok) continue;
+		working = result.value;
+		accepted.push(stamped);
 	}
-	return working;
+	return { state: working, accepted };
 }
 
 function buildContext(
@@ -511,7 +524,8 @@ function eventChanges(events: readonly MonthEvent[]): NotableChange[] {
 
 export function stepMonth(state: SimState, actions: readonly Action[]): StepResult {
 	const month = state.month + 1;
-	const applied = acceptActions(state, actions, month);
+	const accepted = acceptActions(state, actions, month);
+	const applied = accepted.state;
 	const tiles = settleRelocations(applied.tiles, month);
 	const allocation = state.scenario.budget?.monthly ?? 0;
 	const enforcement = hasActive(applied.riverInterventions, 'enforcement', month, true);
@@ -532,7 +546,14 @@ export function stepMonth(state: SimState, actions: readonly Action[]): StepResu
 	const droughtMonthsLeft = droughtEvent
 		? droughtEvent.value - 1
 		: Math.max(0, state.droughtMonthsLeft - 1);
-	const context = buildContext(prepared, month, cash.upkeepPaid, droughtActive, roll, actions);
+	const context = buildContext(
+		prepared,
+		month,
+		cash.upkeepPaid,
+		droughtActive,
+		roll,
+		accepted.accepted
+	);
 	const assessment = assessRiver(prepared, tiles, context);
 	const floods = settleFloods(prepared, tiles, assessment, month);
 	const community = new Set<SegmentIndex>();
@@ -596,13 +617,15 @@ export function stepMonth(state: SimState, actions: readonly Action[]): StepResu
 		economy,
 		indicators: indicatorsOf(segments, assessment.floodRisk, economyIndicator),
 		droughtMonthsLeft,
+		droughtActive,
 		lastEventMonth: roll.lastEventMonth,
 		litterToSea: litter.toSea,
 		litterToSeaTotal: prepared.litterToSeaTotal + litter.toSea,
 		affectedResidents: floods.affectedResidents,
 		losses: floods.losses,
 		events,
-		changes
+		changes,
+		actions: accepted.accepted
 	};
 	return { state: next, events, changes };
 }

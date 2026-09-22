@@ -226,6 +226,7 @@ export interface SimState {
 	baseline: EconomyState;
 	indicators: Indicators;
 	droughtMonthsLeft: number;
+	droughtActive: boolean;
 	lastEventMonth: Partial<Record<EventType, number>>;
 	litterToSea: number;
 	litterToSeaTotal: number;
@@ -233,6 +234,7 @@ export interface SimState {
 	losses: number;
 	events: readonly MonthEvent[];
 	changes: readonly NotableChange[];
+	actions: readonly Action[];
 }
 
 export interface StepResult {

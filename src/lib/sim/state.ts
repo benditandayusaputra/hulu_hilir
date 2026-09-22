@@ -108,13 +108,15 @@ export function createInitialState(scenario: Scenario, seed: number): SimState {
 		baseline: economy,
 		indicators: { waterQuality: 0, fish: 0, floodRisk: 0, economy: 0 },
 		droughtMonthsLeft: 0,
+		droughtActive: false,
 		lastEventMonth: {},
 		litterToSea: 0,
 		litterToSeaTotal: 0,
 		affectedResidents: 0,
 		losses: 0,
 		events: [],
-		changes: []
+		changes: [],
+		actions: []
 	};
 	const context = {
 		...previewContext(),
