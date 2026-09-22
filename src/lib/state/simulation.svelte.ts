@@ -1,3 +1,4 @@
+import { getContext } from 'svelte';
 import {
 	actionSpecs,
 	applyAction,
@@ -64,6 +65,12 @@ export type Speed = (typeof speedOptions)[number];
 export const MONTH_INTERVAL_MS = 1500;
 export const DEFAULT_SEED = 2026;
 export const sessionKey = Symbol('simulation-session');
+
+export function getSession(): SimulationSession {
+	const session = getContext<SimulationSession | undefined>(sessionKey);
+	if (session === undefined) throw new Error('SimulationSession context missing');
+	return session;
+}
 
 export interface Tool {
 	type: ActionType;

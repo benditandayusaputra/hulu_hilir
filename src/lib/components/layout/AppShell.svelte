@@ -64,12 +64,12 @@
 <div class="flex min-h-dvh flex-col">
 	<header class="border-b-[1.5px] border-ink/10 bg-surface">
 		<div
-			class="mx-auto flex w-full items-center justify-between gap-4 px-4 py-3 {shell.fullWidth
+			class="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 {shell.fullWidth
 				? 'max-w-[88rem]'
 				: 'max-w-6xl'}"
 		>
 			<a href={homeHref} class="font-display text-lg font-semibold">{ui.siteName}</a>
-			<nav aria-label={ui.mainNavLabel} class="flex items-center gap-1 sm:gap-2">
+			<nav aria-label={ui.mainNavLabel} class="flex flex-wrap items-center gap-1 sm:gap-2">
 				<a
 					href={homeHref}
 					aria-current={page.url.pathname === homeHref ? 'page' : undefined}
