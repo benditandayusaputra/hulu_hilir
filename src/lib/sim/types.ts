@@ -115,6 +115,7 @@ export interface SegmentState {
 	greenbeltMaturity: number;
 	interventions: readonly Intervention[];
 	fish: FishPopulation;
+	sensitiveLost: boolean;
 	floodRatio: number;
 	floodStatus: FloodStatus;
 	goodStreak: number;
