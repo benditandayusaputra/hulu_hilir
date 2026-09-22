@@ -3,23 +3,63 @@
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
+	"packageManager": "pnpm@11.24.0",
+	"engines": {
+		"node": ">=24"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
+		"build:static": "BUILD_TARGET=static PUBLIC_AI_MODE=off vite build",
 		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+		"prepare": "svelte-kit sync && simple-git-hooks",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+		"lint": "eslint . --max-warnings 0 && prettier --check .",
+		"format": "prettier --write .",
+		"check:no-comments": "node scripts/check-no-comments.ts",
+		"test:unit": "vitest run",
+		"test:e2e": "playwright test tests/e2e",
+		"test:a11y": "playwright test tests/a11y --project=chromium",
+		"verify": "pnpm check:no-comments && pnpm lint && pnpm check && pnpm test:unit && pnpm test:e2e && pnpm test:a11y"
+	},
+	"simple-git-hooks": {
+		"pre-commit": "pnpm check:no-comments && pnpm lint && pnpm check",
+		"preserveUnused": [
+			"commit-msg"
+		]
+	},
+	"dependencies": {
+		"@fontsource-variable/fraunces": "^5.3.0",
+		"@fontsource-variable/plus-jakarta-sans": "^5.3.0",
+		"gsap": "^3.15.0"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^7.0.1",
+		"@axe-core/playwright": "^4.13.0",
+		"@eslint/js": "^10.0.1",
+		"@playwright/test": "^1.63.0",
+		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/adapter-vercel": "^6.3.4",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.3",
+		"@types/node": "^26.6.2",
+		"eslint": "^10.11.0",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-svelte": "^3.23.0",
+		"globals": "^17.12.0",
+		"parse5": "^8.0.1",
+		"postcss": "^8.5.28",
+		"prettier": "^3.9.8",
+		"prettier-plugin-svelte": "^4.1.1",
+		"prettier-plugin-tailwindcss": "^0.8.1",
+		"simple-git-hooks": "^2.14.0",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
-		"vite": "^8.0.16"
+		"typescript-eslint": "^8.70.0",
+		"vite": "^8.0.16",
+		"vitest": "^5.0.1",
+		"yaml": "^2.9.1"
 	}
 }
