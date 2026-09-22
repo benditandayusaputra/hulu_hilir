@@ -2,12 +2,6 @@
 
 Laboratorium sungai virtual untuk siswa SMP dan SMA. Siswa menempatkan pabrik, permukiman, sawah, atau hutan di bantaran sungai 6 segmen, lalu melihat dampaknya ke kualitas air, ikan, dan banjir dari hulu sampai muara.
 
-## Dokumentasi
-
-- `docs/SPEK.md` berisi spesifikasi lengkap: rumus, konstanta, komponen, aksesibilitas, dan urutan tahap F0 sampai F10.
-- `CLAUDE.md` berisi aturan kerja yang berlaku di seluruh proyek.
-- `PANDUAN-CLAUDE-CODE.md` berisi panduan menjalankan tiap tahap.
-
 ## Menjalankan
 
 ```sh
@@ -29,3 +23,5 @@ Skrip pengujian dan pemeriksaan (`pnpm lint`, `pnpm test:unit`, `pnpm test:e2e`,
 ## Stack
 
 SvelteKit 2, Svelte 5 runes, TypeScript strict, Tailwind v4, GSAP, Valibot, Vitest, Playwright. Package manager pnpm, deploy Vercel.
+
+Konfigurasi SvelteKit berada inline di `vite.config.ts`, bukan di `svelte.config.js`, mengikuti bawaan `sv` v0.17.
