@@ -165,12 +165,12 @@ export const landUseSpecs: Record<LandUse, LandUseSpec> = {
 		litter: 8
 	},
 	factory: {
-		bod: 1000,
+		bod: 800,
 		tss: 800,
 		nitrate: 20,
 		phosphate: 5,
 		fecalColiform: 1e11,
-		chromium: 12,
+		chromium: 6,
 		runoff: 0.8,
 		revenue: 1.2,
 		jobs: 800,
@@ -567,7 +567,7 @@ export const WATER_TEMPERATURE_AMPLITUDE = 1.0;
 export const WATER_TEMPERATURE_PEAK_OFFSET_HOUR = 9;
 export const CLOUD_TEMPERATURE_LOSS = 0.5;
 export const BIOMASS_MAX = 1.5;
-export const BIOMASS_PHOSPHATE_UNIT = 0.3;
+export const BIOMASS_PHOSPHATE_UNIT = 0.5;
 export const BIOMASS_TSS_CAP = 150;
 export const BIOMASS_TSS_UNIT = 200;
 export const BIOMASS_HYACINTH_SHARE = 0.5;
