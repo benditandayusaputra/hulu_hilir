@@ -1,6 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { gotoReady, tabKey } from '../ready';
 
+declare global {
+	interface Window {
+		frameGaps?: number[];
+	}
+}
+
 function cell(page: Page, segment: number, column: number) {
 	return page.locator(`[data-cell="${segment}-${column}"]`);
 }
@@ -73,8 +79,17 @@ test.describe('Lab: panggung sungai', () => {
 		const box = await cell(page, 1, 1).boundingBox();
 		expect(box?.width ?? 0).toBeGreaterThanOrEqual(56);
 		expect(box?.height ?? 0).toBeGreaterThanOrEqual(56);
+		await page.getByRole('button', { name: 'Inspektor Segmen' }).click();
+		const inspector = page.getByRole('dialog', { name: 'Inspektor Segmen' });
+		await inspector.getByRole('switch', { name: 'Mode Ilmiah' }).click();
+		await expect(inspector.getByRole('table')).toBeVisible();
+		const sheet = await inspector.evaluate((element) => ({
+			scroll: element.scrollWidth,
+			client: element.clientWidth
+		}));
+		expect(sheet.scroll).toBeLessThanOrEqual(sheet.client);
+		await page.keyboard.press('Escape');
 		await page.getByRole('button', { name: 'Tampilan Tabel' }).click();
-		await page.getByRole('switch', { name: 'Mode Ilmiah' }).click();
 		await page.getByText('Lihat data').click();
 		const after = await page.evaluate(() => ({
 			scroll: document.documentElement.scrollWidth,
@@ -262,5 +277,81 @@ test.describe('Lab: inspektor, tabel, dan grafik', () => {
 		const table = figure.getByRole('table', { name: 'Riwayat indikator' });
 		await expect(table.getByRole('rowheader')).toHaveCount(4);
 		await expect(table.getByRole('columnheader', { name: 'Risiko Banjir' })).toBeVisible();
+	});
+});
+
+test.describe('Lab: tata letak responsif dan performa', () => {
+	test('di lebar 360 px palet dan panel aksi tampil sebagai lembar', async ({ page }) => {
+		await page.setViewportSize({ width: 360, height: 740 });
+		await gotoReady(page, '/lab');
+		await page.getByRole('button', { name: 'Alat', exact: true }).focus();
+		await page.keyboard.press('Enter');
+		const sheet = page.getByRole('dialog', { name: 'Palet alat' });
+		await expect(sheet).toBeVisible();
+		await sheet.getByRole('radio', { name: 'Pabrik', exact: true }).check();
+		await sheet.getByRole('button', { name: 'Tutup' }).click();
+		await expect(sheet).toBeHidden();
+		await expect(page.getByRole('button', { name: 'Alat', exact: true })).toBeFocused();
+		await cell(page, 2, 1).click();
+		const panel = page.getByRole('dialog', { name: 'Segmen 2 Hulu, kiri dekat sungai' });
+		await expect(panel).toBeVisible();
+		await expect(panel.getByRole('heading', { level: 2 })).toBeFocused();
+		await panel.getByRole('button', { name: 'Pasang' }).click();
+		await expect(panel).toBeHidden();
+		await expect(cell(page, 2, 1)).toHaveAttribute('aria-label', /Pabrik tanpa IPAL/);
+		await expect(cell(page, 2, 1)).toBeFocused();
+		const time = await page.getByRole('region', { name: 'Kontrol waktu' }).boundingBox();
+		expect((time?.y ?? 0) + (time?.height ?? 0)).toBeLessThanOrEqual(741);
+		await page.getByRole('button', { name: 'Inspektor Segmen' }).click();
+		await expect(page.getByRole('dialog', { name: 'Inspektor Segmen' })).toBeVisible();
+	});
+
+	test('di lebar 800 px palet, indikator, dan inspektor menjadi tab', async ({ page }) => {
+		await page.setViewportSize({ width: 800, height: 900 });
+		await gotoReady(page, '/lab');
+		const tablist = page.getByRole('tablist', { name: 'Panel' });
+		await expect(tablist.getByRole('tab')).toHaveCount(3);
+		const tools = tablist.getByRole('tab', { name: 'Alat' });
+		await expect(tools).toHaveAttribute('aria-selected', 'true');
+		await tools.focus();
+		await page.keyboard.press('ArrowRight');
+		const indicators = tablist.getByRole('tab', { name: 'Indikator' });
+		await expect(indicators).toBeFocused();
+		await expect(indicators).toHaveAttribute('aria-selected', 'false');
+		await page.keyboard.press('Enter');
+		await expect(indicators).toHaveAttribute('aria-selected', 'true');
+		await expect(
+			page.getByRole('tabpanel').getByRole('meter', { name: 'Kualitas Air' })
+		).toBeVisible();
+		await cell(page, 3, 2).click();
+		await expect(page.getByRole('dialog', { name: 'Segmen 3 Tengah, air' })).toBeVisible();
+	});
+
+	test('menjalankan 60 bulan mempertahankan rata-rata minimal 30 fps', async ({
+		page,
+		browserName
+	}) => {
+		test.skip(browserName !== 'chromium', 'Frame diukur di Chromium saja');
+		await gotoReady(page, '/lab');
+		await page.getByLabel('Skenario awal').selectOption('kota-padat');
+		await cell(page, 1, 1).focus();
+		await page.evaluate(() => {
+			window.frameGaps = [];
+			let last = performance.now();
+			const tick = (now: number) => {
+				window.frameGaps?.push(now - last);
+				last = now;
+				requestAnimationFrame(tick);
+			};
+			requestAnimationFrame(tick);
+		});
+		for (let i = 0; i < 60; i += 1) await page.keyboard.press('n');
+		await expect(page.getByText('Tahun 5, Desember (bulan 60)')).toBeVisible();
+		const gaps = await page.evaluate(() => window.frameGaps ?? []);
+		const total = gaps.reduce((sum, gap) => sum + gap, 0);
+		const fps = (gaps.length / total) * 1000;
+		expect(gaps.length).toBeGreaterThan(5);
+		expect(fps).toBeGreaterThanOrEqual(30);
+		expect(Math.max(...gaps)).toBeLessThan(250);
 	});
 });

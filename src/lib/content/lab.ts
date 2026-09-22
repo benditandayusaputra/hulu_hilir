@@ -12,7 +12,7 @@ import type {
 	SegmentIndex,
 	WaterStatus
 } from '$lib/sim';
-import { formatBillions, formatScore, formatSignedScore } from '$lib/format/number';
+import { formatBillions, formatNumber, formatScore, formatSignedScore } from '$lib/format/number';
 
 export const segmentNames: Record<SegmentIndex, string> = {
 	1: 'Hulu Atas',
@@ -473,10 +473,7 @@ export function waterCellName(
 	fishScore: number,
 	flood: FloodStatus
 ): string {
-	const ip = pollutionIndex.toLocaleString('id-ID', {
-		minimumFractionDigits: 1,
-		maximumFractionDigits: 1
-	});
+	const ip = formatNumber(pollutionIndex, 1);
 	return `${segmentLabel(segment)}, ${lab.waterCell}: ${waterStatusNames[status]}, IP ${ip}, ikan ${formatScore(fishScore)} dari 100, banjir ${floodStatusNames[flood]}. ${lab.pressEnterSegment}`;
 }
 

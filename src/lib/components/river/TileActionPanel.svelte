@@ -137,7 +137,9 @@
 				: chosen.dismantle !== null
 					? session.removeIntervention(cell, chosen.dismantle)
 					: false;
-		if (ok) onclose();
+		if (!ok) return;
+		if (inline) onclose();
+		else sheetOpen = false;
 	}
 
 	function handleWindowKey(event: KeyboardEvent): void {

@@ -60,3 +60,27 @@ test('axe nol pelanggaran saat Tampilan Tabel dan Mode Ilmiah aktif', async ({ p
 	const results = await new AxeBuilder({ page }).analyze();
 	expect(results.violations).toEqual([]);
 });
+
+test('axe nol pelanggaran di lebar 320 px saat lembar alat dan panel aksi terbuka', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 320, height: 720 });
+	await gotoReady(page, '/lab');
+	await page.getByRole('button', { name: 'Alat', exact: true }).click();
+	await expect(page.getByRole('dialog', { name: 'Palet alat' })).toBeVisible();
+	await settleAnimations(page);
+	expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+	await page.keyboard.press('Escape');
+	await page.locator('[data-cell="3-2"]').click();
+	await expect(page.getByRole('dialog', { name: 'Segmen 3 Tengah, air' })).toBeVisible();
+	await settleAnimations(page);
+	expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+
+test('axe nol pelanggaran di lebar 800 px dengan tab panel', async ({ page }) => {
+	await page.setViewportSize({ width: 800, height: 900 });
+	await gotoReady(page, '/lab');
+	await page.getByRole('tab', { name: 'Inspektor' }).click();
+	const results = await new AxeBuilder({ page }).analyze();
+	expect(results.violations).toEqual([]);
+});

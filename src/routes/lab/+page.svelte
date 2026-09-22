@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { setContext, untrack } from 'svelte';
+	import { setContext, tick, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import LineChart from '$lib/components/charts/LineChart.svelte';
 	import IndicatorPanel from '$lib/components/river/IndicatorPanel.svelte';
@@ -11,6 +11,8 @@
 	import Toolbox from '$lib/components/river/Toolbox.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
+	import Sheet from '$lib/components/ui/Sheet.svelte';
+	import Tabs from '$lib/components/ui/Tabs.svelte';
 	import {
 		chartSummary,
 		indicatorNames,
@@ -21,6 +23,7 @@
 	} from '$lib/content/lab';
 	import { scenarioById, type Indicators, type Scenario } from '$lib/sim';
 	import { announcer } from '$lib/state/announcer.svelte';
+	import { desktopQuery, phoneQuery, viewportOf, watchMedia } from '$lib/state/media';
 	import { settings } from '$lib/state/settings.svelte';
 	import { shell } from '$lib/state/shell.svelte';
 	import {
@@ -56,6 +59,28 @@
 	let tableOpen = $state(false);
 	const tableId = 'tabel-sungai';
 
+	let phoneMatch = $state(false);
+	let desktopMatch = $state(true);
+	let toolsOpen = $state(false);
+	let inspectorOpen = $state(false);
+	let activeTab = $state('tools');
+	const viewport = $derived(viewportOf(phoneMatch, desktopMatch));
+	const inlinePanel = $derived(viewport === 'desktop');
+	const panelTabs = [
+		{ id: 'tools', label: lab.tabTools },
+		{ id: 'indicators', label: lab.tabIndicators },
+		{ id: 'inspector', label: lab.tabInspector }
+	];
+
+	$effect(() => {
+		const stopPhone = watchMedia(phoneQuery, (matches) => (phoneMatch = matches));
+		const stopDesktop = watchMedia(desktopQuery, (matches) => (desktopMatch = matches));
+		return () => {
+			stopPhone();
+			stopDesktop();
+		};
+	});
+
 	const chartKeys: readonly (keyof Indicators)[] = ['waterQuality', 'fish', 'floodRisk', 'economy'];
 	const chartStyles = ['solid', 'dashed', 'dotted', 'dashdot'] as const;
 	const chartSeries = $derived(
@@ -87,8 +112,9 @@
 		session.selection = cell;
 	}
 
-	function closePanel(): void {
+	async function closePanel(): Promise<void> {
 		session.selection = null;
+		await tick();
 		if (lastCell !== null) stage?.focusCell(lastCell);
 	}
 
@@ -185,13 +211,33 @@
 	<div
 		class="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[15rem_minmax(0,1fr)_19rem] xl:grid-cols-[17rem_minmax(0,1fr)_21rem]"
 	>
-		<aside
-			aria-label={lab.paletteTitle}
-			class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3"
-		>
-			<h2 class="mb-2 text-lg">{lab.paletteTitle}</h2>
-			<Toolbox />
-		</aside>
+		{#if viewport === 'phone'}
+			<section
+				aria-labelledby="judul-indikator"
+				class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3"
+			>
+				<h2 id="judul-indikator" class="mb-2 text-base">{lab.indicatorsTitle}</h2>
+				<IndicatorPanel compact={true} />
+			</section>
+			<div class="flex flex-wrap gap-2">
+				<Button variant="secondary" aria-haspopup="dialog" onclick={() => (toolsOpen = true)}>
+					{lab.openTools}
+				</Button>
+				<Button variant="secondary" aria-haspopup="dialog" onclick={() => (inspectorOpen = true)}>
+					{lab.inspectorTitle}
+				</Button>
+			</div>
+		{/if}
+
+		{#if viewport === 'desktop'}
+			<aside
+				aria-label={lab.paletteTitle}
+				class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3"
+			>
+				<h2 class="mb-2 text-lg">{lab.paletteTitle}</h2>
+				<Toolbox />
+			</aside>
+		{/if}
 
 		<section
 			id={stageSectionId}
@@ -223,33 +269,55 @@
 			</div>
 		</section>
 
-		<aside aria-label={lab.panelTitle} class="flex flex-col gap-4">
-			{#if session.selection !== null}
-				{#key `${session.selection.segment}-${session.selection.column}`}
-					<TileActionPanel cell={session.selection} inline={true} onclose={closePanel} />
-				{/key}
-			{/if}
+		{#if viewport === 'desktop'}
+			<aside aria-label={lab.panelTitle} class="flex flex-col gap-4">
+				{#if session.selection !== null}
+					{#key `${session.selection.segment}-${session.selection.column}`}
+						<TileActionPanel cell={session.selection} inline={true} onclose={closePanel} />
+					{/key}
+				{/if}
+				<section
+					aria-labelledby="judul-indikator"
+					class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3"
+				>
+					<h2 id="judul-indikator" class="mb-3 text-lg">{lab.indicatorsTitle}</h2>
+					<IndicatorPanel />
+				</section>
+				<section
+					aria-labelledby="judul-inspektor"
+					class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3"
+				>
+					<h2 id="judul-inspektor" class="mb-3 text-lg">{lab.inspectorTitle}</h2>
+					<SegmentInspector />
+				</section>
+			</aside>
+		{:else if viewport === 'tablet'}
 			<section
-				aria-labelledby="judul-indikator"
+				aria-label={lab.panelTitle}
 				class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3"
 			>
-				<h2 id="judul-indikator" class="mb-3 text-lg">{lab.indicatorsTitle}</h2>
-				<IndicatorPanel />
+				<Tabs tabs={panelTabs} bind:active={activeTab} label={lab.panelTitle}>
+					{#snippet panel(id)}
+						<h2 class="sr-only">{panelTabs.find((tab) => tab.id === id)?.label ?? ''}</h2>
+						{#if id === 'tools'}
+							<Toolbox />
+						{:else if id === 'indicators'}
+							<IndicatorPanel />
+						{:else}
+							<SegmentInspector />
+						{/if}
+					{/snippet}
+				</Tabs>
 			</section>
-			<section
-				aria-labelledby="judul-inspektor"
-				class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3"
-			>
-				<h2 id="judul-inspektor" class="mb-3 text-lg">{lab.inspectorTitle}</h2>
-				<SegmentInspector />
-			</section>
-		</aside>
+		{/if}
 
 		<section
 			id={timeSectionId}
 			tabindex="-1"
 			aria-label={lab.timeRegion}
-			class="focus-visible:outline-offset-4 lg:col-span-3"
+			class="focus-visible:outline-offset-4 lg:col-span-3 {viewport === 'phone'
+				? 'sticky bottom-0 z-20'
+				: ''}"
 		>
 			<TimeControls />
 		</section>
@@ -269,6 +337,21 @@
 		</section>
 	</div>
 </div>
+
+{#if !inlinePanel && session.selection !== null}
+	{#key `${session.selection.segment}-${session.selection.column}`}
+		<TileActionPanel cell={session.selection} inline={false} onclose={closePanel} />
+	{/key}
+{/if}
+
+{#if viewport === 'phone'}
+	<Sheet bind:open={toolsOpen} title={lab.paletteTitle}>
+		<Toolbox />
+	</Sheet>
+	<Sheet bind:open={inspectorOpen} title={lab.inspectorTitle}>
+		<SegmentInspector />
+	</Sheet>
+{/if}
 
 <Dialog
 	bind:open={confirmOpen}

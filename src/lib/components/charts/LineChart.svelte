@@ -59,6 +59,7 @@
 	};
 
 	let width = $state(DEFAULT_WIDTH);
+	let dataOpen = $state(false);
 
 	const innerWidth = $derived(Math.max(1, width - MARGIN.left - MARGIN.right));
 	const innerHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
@@ -178,31 +179,34 @@
 			</text>
 		{/each}
 	</svg>
-	<Disclosure summary={seeDataLabel}>
+	<Disclosure summary={seeDataLabel} bind:open={dataOpen}>
 		<div>
-			<table class="w-full border-collapse text-sm">
-				<caption class="mb-1 text-left font-medium">{title}</caption>
-				<thead>
-					<tr class="border-b-[1.5px] border-ink/10 text-left">
-						<th scope="col" class="py-1 pr-2 [overflow-wrap:anywhere]">{xLabel}</th>
-						{#each series as item (item.id)}
-							<th scope="col" class="py-1 pr-2 [overflow-wrap:anywhere]">{item.label}</th>
-						{/each}
-					</tr>
-				</thead>
-				<tbody>
-					{#each rows as row (row.index)}
-						<tr class="border-b border-ink/10">
-							<th scope="row" data-numeric class="py-1 pr-2 text-left font-medium">{row.index}</th>
-							{#each row.values as value, i (i)}
-								<td data-numeric class="py-1 pr-2"
-									>{value === undefined ? '' : formatScore(value)}</td
-								>
+			{#if dataOpen}
+				<table class="w-full border-collapse text-sm">
+					<caption class="mb-1 text-left font-medium">{title}</caption>
+					<thead>
+						<tr class="border-b-[1.5px] border-ink/10 text-left">
+							<th scope="col" class="py-1 pr-2 [overflow-wrap:anywhere]">{xLabel}</th>
+							{#each series as item (item.id)}
+								<th scope="col" class="py-1 pr-2 [overflow-wrap:anywhere]">{item.label}</th>
 							{/each}
 						</tr>
-					{/each}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						{#each rows as row (row.index)}
+							<tr class="border-b border-ink/10">
+								<th scope="row" data-numeric class="py-1 pr-2 text-left font-medium">{row.index}</th
+								>
+								{#each row.values as value, i (i)}
+									<td data-numeric class="py-1 pr-2"
+										>{value === undefined ? '' : formatScore(value)}</td
+									>
+								{/each}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			{/if}
 		</div>
 	</Disclosure>
 </figure>
