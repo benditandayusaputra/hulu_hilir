@@ -220,6 +220,7 @@ export interface SimState {
 	riverInterventions: readonly Intervention[];
 	cash: number | null;
 	cashReceived: number;
+	upkeepPaid: boolean;
 	economy: EconomyState;
 	baseline: EconomyState;
 	indicators: Indicators;
