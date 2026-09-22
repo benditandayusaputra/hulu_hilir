@@ -1,6 +1,7 @@
 .svelte-kit
 .vercel
 build
+coverage
 node_modules
 playwright-report
 pnpm-lock.yaml

@@ -31,6 +31,7 @@ export default ts.config(
 			'.svelte-kit/',
 			'.vercel/',
 			'build/',
+			'coverage/',
 			'node_modules/',
 			'playwright-report/',
 			'test-results/',
