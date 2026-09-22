@@ -84,3 +84,13 @@ test('axe nol pelanggaran di lebar 800 px dengan tab panel', async ({ page }) =>
 	const results = await new AxeBuilder({ page }).analyze();
 	expect(results.violations).toEqual([]);
 });
+
+test('axe nol pelanggaran saat dialog kejadian Kabar Kali terbuka', async ({ page }) => {
+	await gotoReady(page, '/lab?preset=demo');
+	await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
+	await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
+	await expect(page.getByRole('dialog', { name: /Hujan ekstrem|Banjir/ })).toBeVisible();
+	await settleAnimations(page);
+	const results = await new AxeBuilder({ page }).analyze();
+	expect(results.violations).toEqual([]);
+});

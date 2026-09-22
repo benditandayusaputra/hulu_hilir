@@ -2,6 +2,7 @@
 	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import { settingsContent } from '$lib/content/ui';
 	import {
+		audienceOptions,
 		motionOptions,
 		narrationOptions,
 		pickOption,
@@ -41,6 +42,11 @@
 		{ value: 'reduced', label: settingsContent.motion.reduced }
 	];
 
+	const audienceChoices: RadioOption[] = [
+		{ value: 'smp', label: settingsContent.audience.smp },
+		{ value: 'sma', label: settingsContent.audience.sma }
+	];
+
 	const narrationChoices: RadioOption[] = [
 		{ value: 'off', label: settingsContent.narration.off },
 		{ value: 'important', label: settingsContent.narration.important },
@@ -59,6 +65,11 @@
 
 	function selectMotion(value: string): void {
 		settings.motion = pickOption(value, motionOptions, settings.motion);
+		settings.save();
+	}
+
+	function selectAudience(value: string): void {
+		settings.audience = pickOption(value, audienceOptions, settings.audience);
 		settings.save();
 	}
 
@@ -129,6 +140,13 @@
 			motionChoices,
 			settings.motion,
 			selectMotion
+		)}
+		{@render radioGroup(
+			settingsContent.audience.legend,
+			'audience',
+			audienceChoices,
+			settings.audience,
+			selectAudience
 		)}
 		{@render radioGroup(
 			settingsContent.narration.legend,

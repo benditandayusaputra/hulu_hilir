@@ -2,7 +2,9 @@
 	import { setContext, tick, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import LineChart from '$lib/components/charts/LineChart.svelte';
+	import EventDialog from '$lib/components/river/EventDialog.svelte';
 	import IndicatorPanel from '$lib/components/river/IndicatorPanel.svelte';
+	import NarratorPanel from '$lib/components/river/NarratorPanel.svelte';
 	import RiverStage from '$lib/components/river/RiverStage.svelte';
 	import RiverTableView from '$lib/components/river/RiverTableView.svelte';
 	import SegmentInspector from '$lib/components/river/SegmentInspector.svelte';
@@ -21,6 +23,7 @@
 		presetNames,
 		type LabPresetId
 	} from '$lib/content/lab';
+	import { narration } from '$lib/content/narration';
 	import { scenarioById, type Indicators, type Scenario } from '$lib/sim';
 	import { announcer } from '$lib/state/announcer.svelte';
 	import { desktopQuery, phoneQuery, viewportOf, watchMedia } from '$lib/state/media';
@@ -34,15 +37,22 @@
 	} from '$lib/state/simulation.svelte';
 
 	const defaultPreset: LabPresetId = 'desa';
+	const demoPreset = 'demo';
+	type LabScenarioId = LabPresetId | typeof demoPreset;
 	const stageSectionId = 'panggung-sungai';
 	const timeSectionId = 'kontrol-waktu';
 	const presetSelectId = 'pilihan-skenario';
 
-	function presetOf(value: string | null): LabPresetId {
+	function presetOf(value: string | null): LabScenarioId {
+		if (value === demoPreset) return demoPreset;
 		return labPresetIds.find((id) => id === value) ?? defaultPreset;
 	}
 
-	function scenarioOf(preset: LabPresetId): Scenario {
+	function presetLabel(preset: LabScenarioId): string {
+		return preset === demoPreset ? 'Demo' : presetNames[preset];
+	}
+
+	function scenarioOf(preset: LabScenarioId): Scenario {
 		const scenario = scenarioById(preset);
 		if (scenario === null) throw new Error(`preset ${preset} missing`);
 		return scenario;
@@ -54,7 +64,7 @@
 	let root = $state<HTMLDivElement | null>(null);
 	let stage = $state<RiverStage | null>(null);
 	let lastCell = $state<CellRef | null>(null);
-	let pendingPreset = $state<LabPresetId | null>(null);
+	let pendingPreset = $state<LabScenarioId | null>(null);
 	let confirmOpen = $state(false);
 	let tableOpen = $state(false);
 	const tableId = 'tabel-sungai';
@@ -68,6 +78,7 @@
 	const inlinePanel = $derived(viewport === 'desktop');
 	const panelTabs = [
 		{ id: 'tools', label: lab.tabTools },
+		{ id: 'narrator', label: narration.tabNarrator },
 		{ id: 'indicators', label: lab.tabIndicators },
 		{ id: 'inspector', label: lab.tabInspector }
 	];
@@ -118,7 +129,7 @@
 		if (lastCell !== null) stage?.focusCell(lastCell);
 	}
 
-	function requestPreset(preset: LabPresetId): void {
+	function requestPreset(preset: LabScenarioId): void {
 		if (preset === currentPreset) return;
 		if (!hasProgress) {
 			session.reset(scenarioOf(preset));
@@ -204,6 +215,9 @@
 				{#each labPresetIds as id (id)}
 					<option value={id}>{presetNames[id]}</option>
 				{/each}
+				{#if currentPreset === demoPreset}
+					<option value={demoPreset}>{presetLabel(demoPreset)}</option>
+				{/if}
 			</select>
 		</div>
 	</div>
@@ -269,6 +283,16 @@
 			</div>
 		</section>
 
+		{#if viewport === 'phone'}
+			<section
+				aria-labelledby="judul-narator"
+				class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3"
+			>
+				<h2 id="judul-narator" class="mb-2 text-base">{narration.title}</h2>
+				<NarratorPanel compact={true} />
+			</section>
+		{/if}
+
 		{#if viewport === 'desktop'}
 			<aside aria-label={lab.panelTitle} class="flex flex-col gap-4">
 				{#if session.selection !== null}
@@ -282,6 +306,13 @@
 				>
 					<h2 id="judul-indikator" class="mb-3 text-lg">{lab.indicatorsTitle}</h2>
 					<IndicatorPanel />
+				</section>
+				<section
+					aria-labelledby="judul-narator"
+					class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3"
+				>
+					<h2 id="judul-narator" class="mb-3 text-lg">{narration.title}</h2>
+					<NarratorPanel />
 				</section>
 				<section
 					aria-labelledby="judul-inspektor"
@@ -301,6 +332,8 @@
 						<h2 class="sr-only">{panelTabs.find((tab) => tab.id === id)?.label ?? ''}</h2>
 						{#if id === 'tools'}
 							<Toolbox />
+						{:else if id === 'narrator'}
+							<NarratorPanel />
 						{:else if id === 'indicators'}
 							<IndicatorPanel />
 						{:else}
@@ -363,6 +396,8 @@
 		<Button variant="danger" onclick={confirmPreset}>{lab.confirm}</Button>
 	{/snippet}
 	<p class="text-sm text-ink-muted">
-		{pendingPreset === null ? '' : presetNames[pendingPreset]}
+		{pendingPreset === null ? '' : presetLabel(pendingPreset)}
 	</p>
 </Dialog>
+
+<EventDialog />

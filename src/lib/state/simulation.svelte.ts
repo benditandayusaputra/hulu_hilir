@@ -1,4 +1,12 @@
 import { getContext } from 'svelte';
+import { dialogEventOf, isEventType, type PendingEvent } from '$lib/ai/events';
+import { buildNarrationPayload } from '$lib/ai/payload';
+import {
+	detectTrigger,
+	INTERVENTION_EFFECT_DELAY_MONTHS,
+	SUMMARY_INTERVAL_MONTHS,
+	type DetectedTrigger
+} from '$lib/ai/triggers';
 import {
 	actionSpecs,
 	applyAction,
@@ -6,7 +14,6 @@ import {
 	buildCostOf,
 	calendarDateOfMonth,
 	createInitialState,
-	eventTypes,
 	fishGroups,
 	fishScore,
 	floodStatusOf,
@@ -23,7 +30,6 @@ import {
 	type ActionType,
 	type CalendarDate,
 	type CauseReport,
-	type EventType,
 	type FishGroup,
 	type InterventionType,
 	type LandUse,
@@ -59,6 +65,7 @@ import {
 	type TileSideKey
 } from '$lib/content/lab';
 import { announcer } from './announcer.svelte';
+import { narrator } from './narrator.svelte';
 import { settings } from './settings.svelte';
 import { toaster, type ToastTone } from './toast.svelte';
 
@@ -202,10 +209,6 @@ function isWaterStatus(value: string): value is WaterStatus {
 	return waterStatuses.some((status) => status === value);
 }
 
-function isEventType(value: string): value is EventType {
-	return eventTypes.some((type) => type === value);
-}
-
 function isFishGroup(value: string): value is FishGroup {
 	return fishGroups.some((group) => group === value);
 }
@@ -269,6 +272,7 @@ export class SimulationSession {
 	focusedSegment = $state<SegmentIndex>(1);
 	playing = $state(false);
 	speed = $state<Speed>(1);
+	pendingEvent = $state.raw<PendingEvent | null>(null);
 	private timer: ReturnType<typeof setInterval> | null = null;
 
 	state = $derived(applyPending(this.latest, this.pending));
@@ -312,6 +316,8 @@ export class SimulationSession {
 		this.selection = null;
 		this.selectedTool = null;
 		this.focusedSegment = 1;
+		this.pendingEvent = null;
+		narrator.clear();
 	}
 
 	tileAt(cell: CellRef): TileState | null {
@@ -434,7 +440,20 @@ export class SimulationSession {
 		this.log = [...this.log, ...result.state.actions];
 		this.pending = [];
 		this.announceStep(result);
+		this.narrate(result);
+		this.raiseEvent(result);
 		return result;
+	}
+
+	respondToEvent(action: ActionType | null): void {
+		const event = this.pendingEvent;
+		this.pendingEvent = null;
+		if (event === null || action === null || event.segment === null) return;
+		this.install({ type: action }, { segment: event.segment, column: WATER_COLUMN });
+	}
+
+	dismissEvent(): void {
+		this.pendingEvent = null;
 	}
 
 	play(): void {
@@ -481,6 +500,39 @@ export class SimulationSession {
 				? floodgateTargetMessage
 				: actionErrorMessage(result.error.code, name, landUse);
 		return { action, ok: false, reason, cost, cashAfter: this.state.cash };
+	}
+
+	private baselineFor(trigger: DetectedTrigger): SimState {
+		const offset =
+			trigger.kind === 'intervention_effect'
+				? INTERVENTION_EFFECT_DELAY_MONTHS
+				: trigger.kind === 'yearly_summary'
+					? SUMMARY_INTERVAL_MONTHS
+					: 1;
+		return this.snapshots[this.snapshots.length - 1 - offset] ?? this.initial;
+	}
+
+	private narrate(result: StepResult): void {
+		const trigger = detectTrigger(result, this.snapshots);
+		if (trigger === null) return;
+		const current = this.latest;
+		const payload = buildNarrationPayload({
+			trigger,
+			current,
+			baseline: this.baselineFor(trigger),
+			audience: settings.audience,
+			calendarMonth: this.calendar.date.month,
+			season: this.calendar.season,
+			causes: (segment) => attributeCauses(current, segment)
+		});
+		narrator.consider(payload, trigger.priority, this.speed);
+	}
+
+	private raiseEvent(result: StepResult): void {
+		const event = dialogEventOf(result.changes, this.month);
+		if (event === null) return;
+		this.pause();
+		this.pendingEvent = event;
 	}
 
 	private announceStep(result: StepResult): void {

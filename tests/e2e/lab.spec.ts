@@ -11,6 +11,19 @@ function cell(page: Page, segment: number, column: number) {
 	return page.locator(`[data-cell="${segment}-${column}"]`);
 }
 
+function timeControls(page: Page) {
+	return page.getByRole('region', { name: 'Kontrol waktu' });
+}
+
+async function closeEventDialog(page: Page): Promise<void> {
+	if ((await page.getByRole('dialog').count()) > 0) await page.keyboard.press('Escape');
+}
+
+async function stepWithKeyboard(page: Page): Promise<void> {
+	await page.keyboard.press('n');
+	await closeEventDialog(page);
+}
+
 const waterNamePattern =
 	/^Segmen 2 Hulu, air: (Baik|Cemar ringan|Cemar sedang|Cemar berat), IP \d+,\d, ikan \d+ dari 100, banjir (Aman|Siaga|Banjir ringan|Banjir besar)\. Tekan Enter untuk aksi segmen\.$/;
 
@@ -160,8 +173,8 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 
 		const quality = page.getByRole('meter', { name: 'Kualitas Air' });
 		const before = await quality.getAttribute('aria-valuenow');
-		for (let i = 0; i < 6; i += 1) await page.keyboard.press('n');
-		await expect(page.getByText('Tahun 1, Juni (bulan 6)')).toBeVisible();
+		for (let i = 0; i < 6; i += 1) await stepWithKeyboard(page);
+		await expect(timeControls(page).getByText('Tahun 1, Juni (bulan 6)')).toBeVisible();
 		await expect(quality).not.toHaveAttribute('aria-valuenow', before ?? '');
 		await expect(quality).toHaveAttribute('aria-valuetext', /dari 100, (naik|turun|tetap)/);
 	});
@@ -187,7 +200,7 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 		await page.getByRole('radio', { name: '4x' }).check();
 		await play.click();
 		await expect(page.getByRole('button', { name: 'Jeda' })).toBeVisible();
-		await expect(page.getByText(/\(bulan [1-9]\d*\)/)).toBeVisible();
+		await expect(timeControls(page).getByText(/\(bulan [1-9]\d*\)/)).toBeVisible();
 		await page.getByRole('button', { name: 'Jeda' }).click();
 		await expect(page.getByRole('button', { name: 'Putar' })).toBeVisible();
 		const undo = page.getByRole('button', { name: 'Batalkan aksi terakhir' });
@@ -214,7 +227,7 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 		await expect(dialog).toBeVisible();
 		await dialog.getByRole('button', { name: 'Ganti' }).click();
 		await expect(dialog).toBeHidden();
-		await expect(page.getByText('Tahun 1, Januari (bulan 0)')).toBeVisible();
+		await expect(timeControls(page).getByText('Tahun 1, Januari (bulan 0)')).toBeVisible();
 		await expect(cell(page, 4, 1)).toHaveAttribute('aria-label', /: Permukiman padat\./);
 	});
 });
@@ -310,10 +323,12 @@ test.describe('Lab: tata letak responsif dan performa', () => {
 		await page.setViewportSize({ width: 800, height: 900 });
 		await gotoReady(page, '/lab');
 		const tablist = page.getByRole('tablist', { name: 'Panel' });
-		await expect(tablist.getByRole('tab')).toHaveCount(3);
+		await expect(tablist.getByRole('tab')).toHaveCount(4);
 		const tools = tablist.getByRole('tab', { name: 'Alat' });
 		await expect(tools).toHaveAttribute('aria-selected', 'true');
 		await tools.focus();
+		await page.keyboard.press('ArrowRight');
+		await expect(tablist.getByRole('tab', { name: 'Narator' })).toBeFocused();
 		await page.keyboard.press('ArrowRight');
 		const indicators = tablist.getByRole('tab', { name: 'Indikator' });
 		await expect(indicators).toBeFocused();
@@ -345,8 +360,8 @@ test.describe('Lab: tata letak responsif dan performa', () => {
 			};
 			requestAnimationFrame(tick);
 		});
-		for (let i = 0; i < 60; i += 1) await page.keyboard.press('n');
-		await expect(page.getByText('Tahun 5, Desember (bulan 60)')).toBeVisible();
+		for (let i = 0; i < 60; i += 1) await stepWithKeyboard(page);
+		await expect(timeControls(page).getByText('Tahun 5, Desember (bulan 60)')).toBeVisible();
 		const gaps = await page.evaluate(() => window.frameGaps ?? []);
 		const total = gaps.reduce((sum, gap) => sum + gap, 0);
 		const fps = (gaps.length / total) * 1000;

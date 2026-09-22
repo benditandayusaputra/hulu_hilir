@@ -19,8 +19,9 @@
 		"check:no-comments": "node scripts/check-no-comments.ts",
 		"test:unit": "vitest run --coverage --exclude '**/performance.test.ts' && vitest run src/lib/sim/performance.test.ts --coverage.enabled=false",
 		"test:e2e": "playwright test tests/e2e",
+		"test:e2e:ai-off": "playwright test --config playwright.ai-off.config.ts",
 		"test:a11y": "playwright test tests/a11y --project=chromium",
-		"verify": "pnpm check:no-comments && pnpm lint && pnpm check && pnpm test:unit && pnpm test:e2e && pnpm test:a11y"
+		"verify": "pnpm check:no-comments && pnpm lint && pnpm check && pnpm test:unit && pnpm test:e2e && pnpm test:e2e:ai-off && pnpm test:a11y"
 	},
 	"simple-git-hooks": {
 		"pre-commit": "pnpm check:no-comments && pnpm lint && pnpm check",

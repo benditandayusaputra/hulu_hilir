@@ -11,7 +11,7 @@ export function tabKey(browserName: string): string {
 
 export async function settleAnimations(page: Page): Promise<void> {
 	await page.evaluate(() =>
-		Promise.all(
+		Promise.allSettled(
 			document
 				.getAnimations()
 				.filter((animation) => {

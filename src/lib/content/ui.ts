@@ -41,6 +41,11 @@ export const settingsContent = {
 		important: 'Hanya yang penting',
 		normal: 'Normal'
 	},
+	audience: {
+		legend: 'Jenjang',
+		smp: 'SMP',
+		sma: 'SMA'
+	},
 	narratorVoice: 'Suara narator',
 	scientificMode: 'Mode Ilmiah',
 	keyboardShortcuts: 'Pintasan keyboard satu huruf'

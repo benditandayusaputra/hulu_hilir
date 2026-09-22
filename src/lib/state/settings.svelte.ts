@@ -4,17 +4,20 @@ export const themeOptions = ['system', 'light', 'dark'] as const;
 export const textSizeOptions = ['normal', 'large', 'larger'] as const;
 export const motionOptions = ['system', 'full', 'reduced'] as const;
 export const narrationOptions = ['off', 'important', 'normal'] as const;
+export const audienceOptions = ['smp', 'sma'] as const;
 
 export type Theme = (typeof themeOptions)[number];
 export type TextSize = (typeof textSizeOptions)[number];
 export type MotionPreference = (typeof motionOptions)[number];
 export type NarrationFrequency = (typeof narrationOptions)[number];
+export type AudienceLevel = (typeof audienceOptions)[number];
 
 export interface SettingsSnapshot {
 	theme: Theme;
 	textSize: TextSize;
 	motion: MotionPreference;
 	narrationFrequency: NarrationFrequency;
+	audience: AudienceLevel;
 	narratorVoice: boolean;
 	scientificMode: boolean;
 	keyboardShortcuts: boolean;
@@ -28,6 +31,7 @@ export const defaultSettings: SettingsSnapshot = {
 	textSize: 'normal',
 	motion: 'system',
 	narrationFrequency: 'normal',
+	audience: 'smp',
 	narratorVoice: false,
 	scientificMode: false,
 	keyboardShortcuts: true
@@ -58,6 +62,7 @@ export function parseSettings(raw: unknown): SettingsSnapshot {
 			narrationOptions,
 			defaultSettings.narrationFrequency
 		),
+		audience: pickOption(record['audience'], audienceOptions, defaultSettings.audience),
 		narratorVoice: pickBoolean(record['narratorVoice'], defaultSettings.narratorVoice),
 		scientificMode: pickBoolean(record['scientificMode'], defaultSettings.scientificMode),
 		keyboardShortcuts: pickBoolean(record['keyboardShortcuts'], defaultSettings.keyboardShortcuts)
@@ -83,6 +88,7 @@ export class Settings {
 	textSize = $state<TextSize>(defaultSettings.textSize);
 	motion = $state<MotionPreference>(defaultSettings.motion);
 	narrationFrequency = $state<NarrationFrequency>(defaultSettings.narrationFrequency);
+	audience = $state<AudienceLevel>(defaultSettings.audience);
 	narratorVoice = $state(defaultSettings.narratorVoice);
 	scientificMode = $state(defaultSettings.scientificMode);
 	keyboardShortcuts = $state(defaultSettings.keyboardShortcuts);
@@ -93,6 +99,7 @@ export class Settings {
 			textSize: this.textSize,
 			motion: this.motion,
 			narrationFrequency: this.narrationFrequency,
+			audience: this.audience,
 			narratorVoice: this.narratorVoice,
 			scientificMode: this.scientificMode,
 			keyboardShortcuts: this.keyboardShortcuts
@@ -104,6 +111,7 @@ export class Settings {
 		this.textSize = snapshot.textSize;
 		this.motion = snapshot.motion;
 		this.narrationFrequency = snapshot.narrationFrequency;
+		this.audience = snapshot.audience;
 		this.narratorVoice = snapshot.narratorVoice;
 		this.scientificMode = snapshot.scientificMode;
 		this.keyboardShortcuts = snapshot.keyboardShortcuts;

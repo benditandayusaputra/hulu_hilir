@@ -24,6 +24,7 @@
 		".svelte-kit/types/**/$types.d.ts",
 		"vite.config.ts",
 		"playwright.config.ts",
+		"playwright.ai-off.config.ts",
 		"eslint.config.js",
 		"src/**/*.js",
 		"src/**/*.ts",

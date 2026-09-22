@@ -119,7 +119,13 @@
 
 <figure class="flex flex-col gap-2" bind:clientWidth={width}>
 	<figcaption class="text-sm text-ink-muted">{summary}</figcaption>
-	<svg viewBox="0 0 {width} {HEIGHT}" aria-hidden="true" class="block h-auto w-full text-[13px]">
+	<svg
+		viewBox="0 0 {width} {HEIGHT}"
+		height={HEIGHT}
+		preserveAspectRatio="xMinYMin meet"
+		aria-hidden="true"
+		class="block w-full text-[13px]"
+	>
 		<g class="stroke-ink/10">
 			{#each yTicks as tick (tick)}
 				<line x1={MARGIN.left} x2={MARGIN.left + innerWidth} y1={y(tick)} y2={y(tick)} />

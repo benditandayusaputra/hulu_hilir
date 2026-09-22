@@ -160,6 +160,29 @@ describe('SimulationSession', () => {
 		expect(toast?.message).toMatch(/^Segmen \d \w+( \w+)? berubah menjadi Cemar/);
 	});
 
+	it('membuka dialog kejadian dan menjeda saat kejadian penting terjadi', () => {
+		const session = new SimulationSession(scenario('demo'));
+		session.play();
+		session.step();
+		expect(session.pendingEvent).toBeNull();
+		session.step();
+		expect(session.pendingEvent?.month).toBe(2);
+		expect(['extreme_rain', 'flood']).toContain(session.pendingEvent?.type);
+		expect(session.playing).toBe(false);
+		session.respondToEvent(null);
+		expect(session.pendingEvent).toBeNull();
+	});
+
+	it('menanggapi kejadian dengan aksi dari katalog di segmen kejadian', () => {
+		const session = new SimulationSession(scenario('desa'));
+		session.pendingEvent = { type: 'illegal_dumping', segment: 2, month: 3 };
+		session.respondToEvent('seal_illegal_outlet');
+		expect(session.pending.map((action) => [action.type, action.target])).toEqual([
+			['seal_illegal_outlet', '2']
+		]);
+		expect(session.pendingEvent).toBeNull();
+	});
+
 	it('mereset skenario dan membersihkan pilihan', () => {
 		const session = new SimulationSession(scenario('desa'));
 		session.selection = waterCell;
