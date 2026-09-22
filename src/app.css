@@ -1,1 +1,176 @@
-@import "tailwindcss";
+@import '@fontsource-variable/fraunces/wght.css';
+@import '@fontsource-variable/plus-jakarta-sans/wght.css';
+@import 'tailwindcss';
+
+@theme {
+	--font-display: 'Fraunces Variable', Georgia, serif;
+	--font-sans: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+
+	--text-sm: 0.9rem;
+	--text-sm--line-height: 1.5;
+	--text-base: 1.125rem;
+	--text-base--line-height: 1.6;
+	--text-lg: 1.40625rem;
+	--text-lg--line-height: 1.45;
+	--text-xl: 1.75rem;
+	--text-xl--line-height: 1.3;
+	--text-2xl: 2.1875rem;
+	--text-2xl--line-height: 1.2;
+	--text-3xl: 2.75rem;
+	--text-3xl--line-height: 1.15;
+
+	--spacing: 0.25rem;
+
+	--radius-card: 12px;
+	--radius-control: 8px;
+	--radius-chip: 9999px;
+
+	--color-bg: #f6f1e7;
+	--color-surface: #fffdf8;
+	--color-surface-2: #efe7d8;
+	--color-ink: #1f2a2e;
+	--color-ink-muted: #4b5a5e;
+	--color-primary: #0f6e6e;
+	--color-on-primary: #ffffff;
+	--color-accent: #b5651d;
+	--color-accent-ink: #8a4a12;
+	--color-leaf: #3e7c3a;
+	--color-danger: #b3261e;
+	--color-focus: #0b3d91;
+	--color-focus-halo: #ffffff;
+
+	--color-water-good: #5bc0c9;
+	--color-water-light: #a3a860;
+	--color-water-moderate: #a0763a;
+	--color-water-heavy: #3f3229;
+	--color-water-heavy-edge: #3f3229;
+
+	--dur-fast: 150ms;
+	--dur-base: 250ms;
+	--dur-slow: 600ms;
+	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+	--measure-prose: 68ch;
+}
+
+@layer theme {
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme='light']) {
+			--color-bg: #0f1719;
+			--color-surface: #172226;
+			--color-surface-2: #1e2c31;
+			--color-ink: #e8efea;
+			--color-ink-muted: #a9b8b4;
+			--color-primary: #4fb8b3;
+			--color-on-primary: #0f1719;
+			--color-accent: #e0a260;
+			--color-accent-ink: #edb77e;
+			--color-leaf: #7dbe72;
+			--color-danger: #f2877e;
+			--color-focus: #ffd84d;
+			--color-focus-halo: #0f1719;
+			--color-water-good: #4aa9b2;
+			--color-water-light: #97a05a;
+			--color-water-moderate: #9a7240;
+			--color-water-heavy: #2b221c;
+			--color-water-heavy-edge: #8d7f70;
+		}
+	}
+
+	:root[data-theme='dark'] {
+		--color-bg: #0f1719;
+		--color-surface: #172226;
+		--color-surface-2: #1e2c31;
+		--color-ink: #e8efea;
+		--color-ink-muted: #a9b8b4;
+		--color-primary: #4fb8b3;
+		--color-on-primary: #0f1719;
+		--color-accent: #e0a260;
+		--color-accent-ink: #edb77e;
+		--color-leaf: #7dbe72;
+		--color-danger: #f2877e;
+		--color-focus: #ffd84d;
+		--color-focus-halo: #0f1719;
+		--color-water-good: #4aa9b2;
+		--color-water-light: #97a05a;
+		--color-water-moderate: #9a7240;
+		--color-water-heavy: #2b221c;
+		--color-water-heavy-edge: #8d7f70;
+	}
+}
+
+@layer base {
+	:root {
+		color-scheme: light dark;
+		scroll-padding-block: calc(var(--spacing) * 24);
+	}
+
+	:root[data-theme='light'] {
+		color-scheme: light;
+	}
+
+	:root[data-theme='dark'] {
+		color-scheme: dark;
+	}
+
+	:root[data-text-size='large'] {
+		font-size: 112.5%;
+	}
+
+	:root[data-text-size='larger'] {
+		font-size: 125%;
+	}
+
+	body {
+		background-color: var(--color-bg);
+		color: var(--color-ink);
+		font-family: var(--font-sans);
+		font-size: var(--text-base);
+		line-height: 1.6;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4 {
+		font-family: var(--font-display);
+		font-weight: 650;
+		line-height: 1.2;
+		text-wrap: balance;
+	}
+
+	:where(a):hover {
+		color: var(--color-primary);
+	}
+
+	:focus-visible {
+		outline: 3px solid var(--color-focus);
+		outline-offset: 2px;
+		box-shadow: 0 0 0 5px var(--color-focus-halo);
+	}
+
+	[data-numeric] {
+		font-variant-numeric: tabular-nums;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:root:not([data-motion='full']) *,
+		:root:not([data-motion='full']) *::before,
+		:root:not([data-motion='full']) *::after {
+			animation-duration: 1ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 1ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
+
+	:root[data-motion='reduced'] *,
+	:root[data-motion='reduced'] *::before,
+	:root[data-motion='reduced'] *::after {
+		animation-duration: 1ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 1ms !important;
+		scroll-behavior: auto !important;
+	}
+}
