@@ -11,6 +11,16 @@ export function tabKey(browserName: string): string {
 
 export async function settleAnimations(page: Page): Promise<void> {
 	await page.evaluate(() =>
-		Promise.all(document.getAnimations().map((animation) => animation.finished))
+		Promise.all(
+			document
+				.getAnimations()
+				.filter((animation) => {
+					const end = animation.effect?.getComputedTiming().endTime;
+					return (
+						animation.playState === 'running' && typeof end === 'number' && Number.isFinite(end)
+					);
+				})
+				.map((animation) => animation.finished)
+		)
 	);
 }

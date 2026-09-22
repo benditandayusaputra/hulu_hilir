@@ -75,3 +75,123 @@ test.describe('Lab: panggung sungai', () => {
 		expect(box?.height ?? 0).toBeGreaterThanOrEqual(56);
 	});
 });
+
+test.describe('Lab: alat, panel aksi, dan waktu', () => {
+	test('memasang pabrik lalu IPAL hanya dengan keyboard dan memajukan waktu', async ({
+		page,
+		browserName
+	}) => {
+		await gotoReady(page, '/lab');
+		const tab = tabKey(browserName);
+		const factoryTool = page.getByRole('radio', { name: 'Pabrik', exact: true });
+		await factoryTool.focus();
+		await page.keyboard.press('Space');
+		await expect(factoryTool).toBeChecked();
+		await expect(page.getByText('Alat terpilih: Pabrik', { exact: true })).toBeVisible();
+
+		await page.getByRole('link', { name: 'Lewati ke panggung sungai' }).focus();
+		await page.keyboard.press('Enter');
+		await page.keyboard.press(tab);
+		await page.keyboard.press('ArrowDown');
+		await expect(cell(page, 2, 1)).toBeFocused();
+		await expect(cell(page, 2, 1)).toHaveAccessibleDescription(
+			'Alat terpilih: Pabrik. Tekan Enter untuk memasang.'
+		);
+		await page.keyboard.press('Enter');
+		const panel = page.getByRole('region', { name: 'Segmen 2 Hulu, kiri dekat sungai' });
+		await expect(panel.getByRole('heading', { level: 2 })).toBeFocused();
+		await expect(panel.getByRole('radio', { name: 'Pabrik', exact: true })).toBeChecked();
+		await page.keyboard.press(tab);
+		await page.keyboard.press(tab);
+		await expect(page.getByRole('button', { name: 'Pasang' })).toBeFocused();
+		await page.keyboard.press('Enter');
+		await expect(panel).toHaveCount(0);
+		await expect(cell(page, 2, 1)).toBeFocused();
+		await expect(cell(page, 2, 1)).toHaveAttribute(
+			'aria-label',
+			/^Segmen 2 Hulu, kiri dekat sungai: Pabrik tanpa IPAL\. Air segmen: /
+		);
+
+		const ipalTool = page.getByRole('radio', { name: 'IPAL Industri', exact: true });
+		await ipalTool.focus();
+		await page.keyboard.press('Space');
+		await page.getByRole('link', { name: 'Lewati ke panggung sungai' }).focus();
+		await page.keyboard.press('Enter');
+		await page.keyboard.press(tab);
+		await expect(cell(page, 2, 1)).toBeFocused();
+		await expect(cell(page, 2, 1)).toHaveAccessibleDescription(
+			'Alat terpilih: IPAL Industri, biaya Rp 8 miliar. Tekan Enter untuk memasang.'
+		);
+		await expect(cell(page, 1, 1)).toHaveAccessibleDescription(
+			'IPAL Industri tidak bisa dipasang di Hutan.'
+		);
+		await page.keyboard.press('Enter');
+		await expect(panel.getByRole('heading', { level: 2 })).toBeFocused();
+		await page.keyboard.press(tab);
+		await page.keyboard.press(tab);
+		await page.keyboard.press('Enter');
+		await expect(cell(page, 2, 1)).toHaveAttribute(
+			'aria-label',
+			/^Segmen 2 Hulu, kiri dekat sungai: Pabrik, IPAL Industri\. Air segmen: /
+		);
+
+		const quality = page.getByRole('meter', { name: 'Kualitas Air' });
+		const before = await quality.getAttribute('aria-valuenow');
+		for (let i = 0; i < 6; i += 1) await page.keyboard.press('n');
+		await expect(page.getByText('Tahun 1, Juni (bulan 6)')).toBeVisible();
+		await expect(quality).not.toHaveAttribute('aria-valuenow', before ?? '');
+		await expect(quality).toHaveAttribute('aria-valuetext', /dari 100, (naik|turun|tetap)/);
+	});
+
+	test('escape menutup panel aksi dan mengembalikan fokus ke sel asal', async ({ page }) => {
+		await gotoReady(page, '/lab');
+		await cell(page, 3, 2).click();
+		const panel = page.getByRole('region', { name: 'Segmen 3 Tengah, air' });
+		await expect(panel.getByRole('heading', { level: 2 })).toBeFocused();
+		await expect(cell(page, 3, 2)).toHaveAttribute('aria-pressed', 'true');
+		await page.keyboard.press('Escape');
+		await expect(panel).toHaveCount(0);
+		await expect(cell(page, 3, 2)).toBeFocused();
+		await expect(cell(page, 3, 2)).toHaveAttribute('aria-pressed', 'false');
+	});
+
+	test('putar, jeda, kecepatan, dan batalkan aksi bekerja lewat kontrol waktu', async ({
+		page
+	}) => {
+		await gotoReady(page, '/lab');
+		const play = page.getByRole('button', { name: 'Putar' });
+		await expect(play).toHaveAccessibleDescription('Pintasan: P');
+		await page.getByRole('radio', { name: '4x' }).check();
+		await play.click();
+		await expect(page.getByRole('button', { name: 'Jeda' })).toBeVisible();
+		await expect(page.getByText(/\(bulan [1-9]\d*\)/)).toBeVisible();
+		await page.getByRole('button', { name: 'Jeda' }).click();
+		await expect(page.getByRole('button', { name: 'Putar' })).toBeVisible();
+		const undo = page.getByRole('button', { name: 'Batalkan aksi terakhir' });
+		await expect(undo).toHaveAttribute('aria-disabled', 'true');
+		await expect(undo).toHaveAccessibleDescription('Tidak ada aksi yang menunggu');
+		await cell(page, 4, 2).click();
+		const panel = page.getByRole('region', { name: 'Segmen 4 Kota, air' });
+		await panel.getByRole('radio', { name: /^Sabuk Hijau Bantaran/ }).check();
+		await page.getByRole('button', { name: 'Pasang' }).click();
+		await expect(cell(page, 4, 2)).toBeFocused();
+		await expect(undo).not.toHaveAttribute('aria-disabled', 'true');
+		await undo.click();
+		await expect(undo).toHaveAttribute('aria-disabled', 'true');
+	});
+
+	test('ganti skenario meminta konfirmasi setelah ada kemajuan', async ({ page }) => {
+		await gotoReady(page, '/lab');
+		const select = page.getByLabel('Skenario awal');
+		await select.selectOption('alami');
+		await expect(cell(page, 3, 1)).toHaveAttribute('aria-label', /: Hutan\. Air segmen: Baik\.$/);
+		await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
+		await select.selectOption('kota-padat');
+		const dialog = page.getByRole('dialog', { name: 'Ganti skenario?' });
+		await expect(dialog).toBeVisible();
+		await dialog.getByRole('button', { name: 'Ganti' }).click();
+		await expect(dialog).toBeHidden();
+		await expect(page.getByText('Tahun 1, Januari (bulan 0)')).toBeVisible();
+		await expect(cell(page, 4, 1)).toHaveAttribute('aria-label', /: Permukiman padat\./);
+	});
+});

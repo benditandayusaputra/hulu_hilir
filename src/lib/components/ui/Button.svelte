@@ -24,6 +24,7 @@
 		icon,
 		children,
 		onclick,
+		'aria-describedby': describedBy,
 		...rest
 	}: Props = $props();
 
@@ -43,6 +44,11 @@
 	const buttonId = $props.id();
 	const reasonId = `${buttonId}-reason`;
 	const blocked = $derived(loading || unavailableReason !== '');
+	const describedByIds = $derived(
+		[describedBy, unavailableReason === '' ? undefined : reasonId]
+			.filter((id) => id !== undefined && id !== null && id !== '')
+			.join(' ')
+	);
 
 	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
 		if (blocked) {
@@ -59,7 +65,7 @@
 		{...rest}
 		aria-disabled={blocked ? 'true' : undefined}
 		aria-busy={loading ? 'true' : undefined}
-		aria-describedby={unavailableReason === '' ? undefined : reasonId}
+		aria-describedby={describedByIds === '' ? undefined : describedByIds}
 		onclick={handleClick}
 		class="inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] border-[1.5px] font-medium transition-[background-color,filter] duration-[var(--dur-fast)] ease-[var(--ease-out)] aria-disabled:cursor-not-allowed aria-disabled:opacity-60 {variantClass[
 			variant

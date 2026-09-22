@@ -30,3 +30,23 @@ for (const route of routes) {
 		expect(results.violations).toEqual([]);
 	});
 }
+
+test('axe nol pelanggaran saat panel aksi Lab terbuka', async ({ page }) => {
+	await gotoReady(page, '/lab');
+	await page.locator('[data-cell="2-1"]').click();
+	await expect(
+		page.getByRole('region', { name: 'Segmen 2 Hulu, kiri dekat sungai' })
+	).toBeVisible();
+	await settleAnimations(page);
+	const results = await new AxeBuilder({ page }).analyze();
+	expect(results.violations).toEqual([]);
+});
+
+test('axe nol pelanggaran saat simulasi Lab berjalan', async ({ page }) => {
+	await gotoReady(page, '/lab');
+	await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
+	await page.getByRole('button', { name: 'Putar' }).click();
+	await expect(page.getByRole('button', { name: 'Jeda' })).toBeVisible();
+	const results = await new AxeBuilder({ page }).analyze();
+	expect(results.violations).toEqual([]);
+});

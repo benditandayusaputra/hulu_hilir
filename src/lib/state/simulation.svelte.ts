@@ -117,6 +117,10 @@ export function toolScope(tool: Tool): ActionScope {
 	return actionSpecs[tool.type].scope;
 }
 
+export function toolCost(tool: Tool, landUse: LandUse | null = null): number {
+	return buildCostOf(tool.type, landUse);
+}
+
 export function toolLeadMonths(tool: Tool): number {
 	return actionSpecs[tool.type].leadMonths;
 }

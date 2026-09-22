@@ -34,7 +34,7 @@
 					value={option.value}
 					checked={value === option.value}
 					onchange={() => select(option.value)}
-					class="peer sr-only"
+					class="peer absolute inset-0 m-0 size-full cursor-pointer opacity-0"
 				/>
 				<span
 					class="block min-h-9 rounded-[6px] px-3 py-1.5 text-sm font-medium text-ink-muted peer-checked:bg-surface peer-checked:text-ink peer-checked:shadow-sm peer-focus-visible:shadow-[0_0_0_5px_var(--color-focus-halo)] peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus"
