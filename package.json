@@ -17,7 +17,7 @@
 		"lint": "eslint . --max-warnings 0 && prettier --check .",
 		"format": "prettier --write .",
 		"check:no-comments": "node scripts/check-no-comments.ts",
-		"test:unit": "vitest run --coverage",
+		"test:unit": "vitest run --coverage --exclude '**/performance.test.ts' && vitest run src/lib/sim/performance.test.ts --coverage.enabled=false",
 		"test:e2e": "playwright test tests/e2e",
 		"test:a11y": "playwright test tests/a11y --project=chromium",
 		"verify": "pnpm check:no-comments && pnpm lint && pnpm check && pnpm test:unit && pnpm test:e2e && pnpm test:a11y"

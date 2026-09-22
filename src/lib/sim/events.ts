@@ -104,9 +104,9 @@ function rollIllegalDumping(context: RollContext): void {
 			!hasActive(tile.interventions, 'ipal_industrial', month, state.upkeepPaid)
 	);
 	let target: SegmentIndex | null = null;
-	for (const tile of factories) {
+	for (const tile of state.tiles) {
 		const roll = context.rng.chance(chance);
-		if (roll && target === null) target = tile.segment;
+		if (roll && target === null && factories.includes(tile)) target = tile.segment;
 	}
 	const scheduled = scheduledOf(context, 'illegal_dumping');
 	if (scheduled) {
