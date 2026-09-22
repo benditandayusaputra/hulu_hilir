@@ -73,6 +73,14 @@ test.describe('Lab: panggung sungai', () => {
 		const box = await cell(page, 1, 1).boundingBox();
 		expect(box?.width ?? 0).toBeGreaterThanOrEqual(56);
 		expect(box?.height ?? 0).toBeGreaterThanOrEqual(56);
+		await page.getByRole('button', { name: 'Tampilan Tabel' }).click();
+		await page.getByRole('switch', { name: 'Mode Ilmiah' }).click();
+		await page.getByText('Lihat data').click();
+		const after = await page.evaluate(() => ({
+			scroll: document.documentElement.scrollWidth,
+			client: document.documentElement.clientWidth
+		}));
+		expect(after.scroll).toBeLessThanOrEqual(after.client);
 	});
 });
 
@@ -193,5 +201,66 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 		await expect(dialog).toBeHidden();
 		await expect(page.getByText('Tahun 1, Januari (bulan 0)')).toBeVisible();
 		await expect(cell(page, 4, 1)).toHaveAttribute('aria-label', /: Permukiman padat\./);
+	});
+});
+
+test.describe('Lab: inspektor, tabel, dan grafik', () => {
+	test('inspektor mengikuti segmen yang difokus dan Mode Ilmiah menampilkan tabel parameter', async ({
+		page
+	}) => {
+		await gotoReady(page, '/lab');
+		const inspector = page.getByRole('region', { name: 'Inspektor Segmen' });
+		await expect(inspector.getByRole('heading', { level: 3 })).toHaveText('Segmen 1 Hulu Atas');
+		await cell(page, 4, 2).click();
+		await page.keyboard.press('Escape');
+		await expect(inspector.getByRole('heading', { level: 3 })).toHaveText('Segmen 4 Kota');
+		await expect(inspector.getByText(/^Sumber beban: /)).toBeVisible();
+		await expect(inspector.getByText(/Sensitif/)).toBeVisible();
+		const toggle = inspector.getByRole('switch', { name: 'Mode Ilmiah' });
+		await expect(toggle).toHaveAttribute('aria-checked', 'false');
+		await toggle.click();
+		await expect(toggle).toHaveAttribute('aria-checked', 'true');
+		const table = inspector.getByRole('table', {
+			name: 'Parameter mutu air terhadap baku kelas 2'
+		});
+		await expect(table).toBeVisible();
+		await expect(
+			table.getByRole('rowheader', { name: 'Oksigen terlarut (DO) (mg/L)' })
+		).toBeVisible();
+		await expect(table.getByRole('row')).toHaveCount(8);
+	});
+
+	test('tampilan tabel dibuka lewat tombol dan pintasan T', async ({ page }) => {
+		await gotoReady(page, '/lab');
+		const toggle = page.getByRole('button', { name: 'Tampilan Tabel' });
+		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+		await toggle.click();
+		await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+		const table = page.getByRole('table', {
+			name: 'Status, ikan, dan risiko banjir per segmen'
+		});
+		await expect(table).toBeVisible();
+		await expect(table.getByRole('rowheader')).toHaveCount(6);
+		await expect(
+			page.getByRole('table', { name: 'Parameter mutu air dan sampah per segmen' })
+		).toBeVisible();
+		await cell(page, 1, 1).focus();
+		await page.keyboard.press('t');
+		await expect(table).toBeHidden();
+		await page.keyboard.press('t');
+		await expect(table).toBeVisible();
+		await page.keyboard.press('i');
+		await expect(page.locator('[aria-live="polite"]')).toHaveText(/^Segmen 1 Hulu Atas, air: /);
+	});
+
+	test('grafik riwayat punya ringkasan dan tabel data', async ({ page }) => {
+		await gotoReady(page, '/lab');
+		for (let i = 0; i < 3; i += 1) await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
+		const figure = page.getByRole('figure');
+		await expect(figure).toContainText(/Kualitas Air dari \d+ ke \d+ dalam 3 bulan\./);
+		await figure.getByText('Lihat data').click();
+		const table = figure.getByRole('table', { name: 'Riwayat indikator' });
+		await expect(table.getByRole('rowheader')).toHaveCount(4);
+		await expect(table.getByRole('columnheader', { name: 'Risiko Banjir' })).toBeVisible();
 	});
 });

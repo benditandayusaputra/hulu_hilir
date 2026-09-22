@@ -2,6 +2,7 @@ import { getContext } from 'svelte';
 import {
 	actionSpecs,
 	applyAction,
+	attributeCauses,
 	buildCostOf,
 	calendarDateOfMonth,
 	createInitialState,
@@ -21,6 +22,7 @@ import {
 	type ActionScope,
 	type ActionType,
 	type CalendarDate,
+	type CauseReport,
 	type EventType,
 	type FishGroup,
 	type InterventionType,
@@ -322,6 +324,14 @@ export class SimulationSession {
 		const segment = this.state.segments[index - 1];
 		if (segment === undefined) throw new Error('segment index out of range');
 		return segment;
+	}
+
+	causesOf(index: SegmentIndex): CauseReport {
+		return attributeCauses(this.latest, index);
+	}
+
+	fishScoreOf(index: SegmentIndex): number {
+		return fishScore(this.segmentAt(index).fish);
 	}
 
 	waterCellNameOf(index: SegmentIndex): string {

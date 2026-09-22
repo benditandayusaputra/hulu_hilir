@@ -16,6 +16,15 @@ export function formatBillions(value: number): string {
 	return `Rp ${amount} miliar`;
 }
 
+const COMPACT_THRESHOLD = 10000;
+
+export function formatCompact(value: number): string {
+	if (Math.abs(value) < COMPACT_THRESHOLD) return formatNumber(value);
+	return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(
+		value
+	);
+}
+
 export function formatPercent(share: number): string {
 	return `${Math.round(share * PERCENT_SCALE)}%`;
 }

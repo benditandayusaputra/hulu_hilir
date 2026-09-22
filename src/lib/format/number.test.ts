@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	formatBillions,
+	formatCompact,
 	formatNumber,
 	formatPercent,
 	formatScore,
@@ -19,6 +20,14 @@ describe('formatBillions', () => {
 		expect(formatBillions(8)).toBe('Rp 8 miliar');
 		expect(formatBillions(0.5)).toBe('Rp 0,5 miliar');
 		expect(formatBillions(0.15)).toBe('Rp 0,15 miliar');
+	});
+});
+
+describe('formatCompact', () => {
+	it('meringkas angka besar dengan singkatan Indonesia', () => {
+		expect(formatCompact(9200)).toBe('9.200');
+		expect(formatCompact(12000)).toBe('12\u00a0rb');
+		expect(formatCompact(1250000)).toBe('1,3\u00a0jt');
 	});
 });
 

@@ -50,3 +50,13 @@ test('axe nol pelanggaran saat simulasi Lab berjalan', async ({ page }) => {
 	const results = await new AxeBuilder({ page }).analyze();
 	expect(results.violations).toEqual([]);
 });
+
+test('axe nol pelanggaran saat Tampilan Tabel dan Mode Ilmiah aktif', async ({ page }) => {
+	await gotoReady(page, '/lab');
+	await page.getByRole('button', { name: 'Tampilan Tabel' }).click();
+	await page.getByRole('switch', { name: 'Mode Ilmiah' }).click();
+	await page.getByText('Lihat data').click();
+	await expect(page.getByRole('table', { name: 'Riwayat indikator' })).toBeVisible();
+	const results = await new AxeBuilder({ page }).analyze();
+	expect(results.violations).toEqual([]);
+});

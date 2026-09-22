@@ -1,15 +1,25 @@
 <script lang="ts">
 	import { setContext, untrack } from 'svelte';
 	import { page } from '$app/state';
+	import LineChart from '$lib/components/charts/LineChart.svelte';
 	import IndicatorPanel from '$lib/components/river/IndicatorPanel.svelte';
 	import RiverStage from '$lib/components/river/RiverStage.svelte';
+	import RiverTableView from '$lib/components/river/RiverTableView.svelte';
+	import SegmentInspector from '$lib/components/river/SegmentInspector.svelte';
 	import TileActionPanel from '$lib/components/river/TileActionPanel.svelte';
 	import TimeControls from '$lib/components/river/TimeControls.svelte';
 	import Toolbox from '$lib/components/river/Toolbox.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
-	import { lab, labPresetIds, presetNames, type LabPresetId } from '$lib/content/lab';
-	import { scenarioById, type Scenario } from '$lib/sim';
+	import {
+		chartSummary,
+		indicatorNames,
+		lab,
+		labPresetIds,
+		presetNames,
+		type LabPresetId
+	} from '$lib/content/lab';
+	import { scenarioById, type Indicators, type Scenario } from '$lib/sim';
 	import { announcer } from '$lib/state/announcer.svelte';
 	import { settings } from '$lib/state/settings.svelte';
 	import { shell } from '$lib/state/shell.svelte';
@@ -43,6 +53,31 @@
 	let lastCell = $state<CellRef | null>(null);
 	let pendingPreset = $state<LabPresetId | null>(null);
 	let confirmOpen = $state(false);
+	let tableOpen = $state(false);
+	const tableId = 'tabel-sungai';
+
+	const chartKeys: readonly (keyof Indicators)[] = ['waterQuality', 'fish', 'floodRisk', 'economy'];
+	const chartStyles = ['solid', 'dashed', 'dotted', 'dashdot'] as const;
+	const chartSeries = $derived(
+		chartKeys.map((key, order) => ({
+			id: key,
+			label: indicatorNames[key],
+			values: session.indicatorHistory.map((item) => item[key]),
+			style: chartStyles[order] ?? 'solid'
+		}))
+	);
+	const chartText = $derived(
+		chartSeries
+			.map((item) =>
+				chartSummary(
+					item.label,
+					item.values[0] ?? 0,
+					item.values[item.values.length - 1] ?? 0,
+					session.month
+				)
+			)
+			.join(' ')
+	);
 
 	const currentPreset = $derived(presetOf(session.scenario.id));
 	const hasProgress = $derived(session.month > 0 || session.pending.length > 0);
@@ -92,6 +127,7 @@
 		else if (key === 'n') session.step();
 		else if (speed !== undefined) session.setSpeed(speed);
 		else if (key === 'i') announcer.announce(session.waterCellNameOf(session.focusedSegment));
+		else if (key === 't') tableOpen = !tableOpen;
 		else if (key === '?') shell.helpOpen = true;
 		else return;
 		event.preventDefault();
@@ -131,7 +167,7 @@
 			<h1 class="text-2xl md:text-3xl">{lab.title}</h1>
 			<p class="mt-2 max-w-[var(--measure-prose)] text-ink-muted">{lab.lead}</p>
 		</div>
-		<div class="flex items-center gap-2">
+		<div class="flex flex-wrap items-center gap-2">
 			<label for={presetSelectId} class="font-medium">{lab.scenarioLabel}</label>
 			<select
 				id={presetSelectId}
@@ -147,7 +183,7 @@
 	</div>
 
 	<div
-		class="grid gap-4 lg:grid-cols-[15rem_minmax(0,1fr)_19rem] xl:grid-cols-[17rem_minmax(0,1fr)_21rem]"
+		class="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[15rem_minmax(0,1fr)_19rem] xl:grid-cols-[17rem_minmax(0,1fr)_21rem]"
 	>
 		<aside
 			aria-label={lab.paletteTitle}
@@ -164,6 +200,27 @@
 			class="max-w-fit focus-visible:outline-offset-4"
 		>
 			<RiverStage bind:this={stage} onactivate={openPanel} />
+			<div class="mt-3 flex flex-col gap-3">
+				<div>
+					<Button
+						variant="secondary"
+						size="sm"
+						aria-expanded={tableOpen}
+						aria-controls={tableId}
+						onclick={() => (tableOpen = !tableOpen)}
+					>
+						{lab.tableToggle}
+					</Button>
+				</div>
+				{#if tableOpen}
+					<div
+						id={tableId}
+						class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3"
+					>
+						<RiverTableView />
+					</div>
+				{/if}
+			</div>
 		</section>
 
 		<aside aria-label={lab.panelTitle} class="flex flex-col gap-4">
@@ -179,6 +236,13 @@
 				<h2 id="judul-indikator" class="mb-3 text-lg">{lab.indicatorsTitle}</h2>
 				<IndicatorPanel />
 			</section>
+			<section
+				aria-labelledby="judul-inspektor"
+				class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3"
+			>
+				<h2 id="judul-inspektor" class="mb-3 text-lg">{lab.inspectorTitle}</h2>
+				<SegmentInspector />
+			</section>
 		</aside>
 
 		<section
@@ -188,6 +252,20 @@
 			class="focus-visible:outline-offset-4 lg:col-span-3"
 		>
 			<TimeControls />
+		</section>
+
+		<section
+			aria-labelledby="judul-riwayat"
+			class="rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3 lg:col-span-3"
+		>
+			<h2 id="judul-riwayat" class="mb-3 text-lg">{lab.chartTitle}</h2>
+			<LineChart
+				title={lab.chartTitle}
+				series={chartSeries}
+				xLabel={lab.chartX}
+				summary={chartText}
+				seeDataLabel={lab.seeData}
+			/>
 		</section>
 	</div>
 </div>
