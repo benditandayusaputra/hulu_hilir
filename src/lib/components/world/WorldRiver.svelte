@@ -87,19 +87,6 @@
 	}
 </script>
 
-<defs>
-	<pattern id="world-water-pattern-light" width="22" height="22" patternUnits="userSpaceOnUse">
-		<circle cx="6" cy="6" r="2.4" fill={p.foam} />
-		<circle cx="17" cy="16" r="2" fill={p.foam} />
-	</pattern>
-	<pattern id="world-water-pattern-moderate" width="18" height="18" patternUnits="userSpaceOnUse">
-		<path d="M-3 21 L21 -3 M-3 3 L3 -3 M15 21 L21 15" stroke={p.murk} stroke-width="2.5" />
-	</pattern>
-	<pattern id="world-water-pattern-heavy" width="16" height="16" patternUnits="userSpaceOnUse">
-		<path d="M0 16 L16 0 M0 0 L16 16" stroke="#8C825E" stroke-width="2" />
-	</pattern>
-</defs>
-
 <g fill="none" stroke-linejoin="round">
 	<path
 		d={riverPath}

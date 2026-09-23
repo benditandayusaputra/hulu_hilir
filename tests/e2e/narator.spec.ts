@@ -13,7 +13,7 @@ async function stepMonth(page: Page): Promise<void> {
 
 test.describe('Narator dan kejadian', () => {
 	test('narasi otomatis dipakai saat AI membalas angka asing', async ({ page }) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		await cell(page, 2, 1).click();
 		const panel = page.getByRole('region', { name: 'Segmen 2 Hulu, kiri dekat sungai' });
 		await panel.getByRole('radio', { name: 'Pabrik', exact: true }).check();
@@ -35,7 +35,7 @@ test.describe('Narator dan kejadian', () => {
 	test('kejadian membuka Kabar Kali, menjeda simulasi, dan narasi AI yang valid tampil', async ({
 		page
 	}) => {
-		await gotoReady(page, '/lab?preset=demo');
+		await gotoReady(page, '/lab/demo');
 		await page.getByRole('radio', { name: '4x' }).check();
 		await page.getByRole('button', { name: 'Putar' }).click();
 		const dialog = page.getByRole('dialog', { name: /Hujan ekstrem|Banjir/ });

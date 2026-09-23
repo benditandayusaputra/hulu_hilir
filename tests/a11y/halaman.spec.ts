@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { gotoReady, settleAnimations } from '../ready';
 
-const routes = ['/', '/lab', '/dev/galeri'];
+const routes = ['/', '/lab', '/lab/desa', '/dev/galeri'];
 
 for (const route of routes) {
 	test(`axe nol pelanggaran di ${route}`, async ({ page }) => {
@@ -32,7 +32,7 @@ for (const route of routes) {
 }
 
 test('axe nol pelanggaran saat panel aksi Lab terbuka', async ({ page }) => {
-	await gotoReady(page, '/lab');
+	await gotoReady(page, '/lab/desa');
 	await page.locator('[data-cell="2-1"]').click();
 	await expect(
 		page.getByRole('region', { name: 'Segmen 2 Hulu, kiri dekat sungai' })
@@ -43,7 +43,7 @@ test('axe nol pelanggaran saat panel aksi Lab terbuka', async ({ page }) => {
 });
 
 test('axe nol pelanggaran saat simulasi Lab berjalan', async ({ page }) => {
-	await gotoReady(page, '/lab');
+	await gotoReady(page, '/lab/desa');
 	await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
 	await page.getByRole('button', { name: 'Putar' }).click();
 	await expect(page.getByRole('button', { name: 'Jeda' })).toBeVisible();
@@ -52,7 +52,7 @@ test('axe nol pelanggaran saat simulasi Lab berjalan', async ({ page }) => {
 });
 
 test('axe nol pelanggaran saat Tampilan Tabel dan Mode Ilmiah aktif', async ({ page }) => {
-	await gotoReady(page, '/lab');
+	await gotoReady(page, '/lab/desa');
 	await page.getByRole('button', { name: 'Tampilan Tabel' }).click();
 	await page.getByRole('tab', { name: 'Inspektor' }).click();
 	await page.getByRole('switch', { name: 'Mode Ilmiah' }).click();
@@ -67,7 +67,7 @@ test('axe nol pelanggaran di lebar 320 px saat Peta Petak dan panel aksi terbuka
 	page
 }) => {
 	await page.setViewportSize({ width: 320, height: 720 });
-	await gotoReady(page, '/lab');
+	await gotoReady(page, '/lab/desa');
 	expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 	await page.getByRole('button', { name: 'Peta Petak' }).click();
 	await expect(page.getByRole('dialog', { name: 'Peta Petak' })).toBeVisible();
@@ -81,7 +81,7 @@ test('axe nol pelanggaran di lebar 320 px saat Peta Petak dan panel aksi terbuka
 
 test('axe nol pelanggaran di lebar 800 px dengan tab panel', async ({ page }) => {
 	await page.setViewportSize({ width: 800, height: 900 });
-	await gotoReady(page, '/lab');
+	await gotoReady(page, '/lab/desa');
 	await page.getByRole('button', { name: 'Tampilkan panel' }).click();
 	await page.getByRole('tab', { name: 'Inspektor' }).click();
 	const results = await new AxeBuilder({ page }).analyze();
@@ -89,7 +89,7 @@ test('axe nol pelanggaran di lebar 800 px dengan tab panel', async ({ page }) =>
 });
 
 test('axe nol pelanggaran saat dialog kejadian Kabar Kali terbuka', async ({ page }) => {
-	await gotoReady(page, '/lab?preset=demo');
+	await gotoReady(page, '/lab/demo');
 	await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
 	await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
 	await expect(page.getByRole('dialog', { name: /Hujan ekstrem|Banjir/ })).toBeVisible();

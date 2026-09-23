@@ -29,8 +29,8 @@ const waterNamePattern =
 
 test.describe('Lab: panggung sungai', () => {
 	test('memuat judul, tautan lewati, dan grup sungai enam segmen', async ({ page }) => {
-		await gotoReady(page, '/lab');
-		await expect(page).toHaveTitle('Lab Bebas | Hulu Hilir');
+		await gotoReady(page, '/lab/desa');
+		await expect(page).toHaveTitle('Lab Bebas: Desa Berkembang | Hulu Hilir');
 		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Lab Bebas');
 		await expect(page.getByRole('link', { name: 'Lewati ke panggung sungai' })).toHaveCount(1);
 		await expect(page.getByRole('link', { name: 'Lewati ke kontrol waktu' })).toHaveCount(1);
@@ -44,7 +44,7 @@ test.describe('Lab: panggung sungai', () => {
 		page,
 		browserName
 	}) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		await page.getByRole('link', { name: 'Lewati ke panggung sungai' }).focus();
 		await page.keyboard.press('Enter');
 		await page.keyboard.press(tabKey(browserName));
@@ -70,7 +70,7 @@ test.describe('Lab: panggung sungai', () => {
 	});
 
 	test('nama petak mengikuti pola segmen, sisi, lahan, dan air segmen', async ({ page }) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		await expect(cell(page, 3, 1)).toHaveAttribute(
 			'aria-label',
 			/^Segmen 3 Tengah, kiri dekat sungai: Permukiman\. Air segmen: (Baik|Cemar ringan|Cemar sedang|Cemar berat)\.$/
@@ -83,7 +83,7 @@ test.describe('Lab: panggung sungai', () => {
 
 	test('lebar 320 px tanpa gulir mendatar dan petak minimal 56 px', async ({ page }) => {
 		await page.setViewportSize({ width: 320, height: 720 });
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		const widths = await page.evaluate(() => ({
 			scroll: document.documentElement.scrollWidth,
 			client: document.documentElement.clientWidth
@@ -128,7 +128,7 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 		page,
 		browserName
 	}) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		const tab = tabKey(browserName);
 		const factoryTool = page.getByRole('radio', { name: 'Pabrik', exact: true });
 		await factoryTool.focus();
@@ -191,7 +191,7 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 	});
 
 	test('escape menutup panel aksi dan mengembalikan fokus ke sel asal', async ({ page }) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		await cell(page, 3, 2).click();
 		const panel = page.getByRole('region', { name: 'Segmen 3 Tengah, air' });
 		await expect(panel.getByRole('heading', { level: 2 })).toBeFocused();
@@ -205,7 +205,7 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 	test('putar, jeda, kecepatan, dan batalkan aksi bekerja lewat kontrol waktu', async ({
 		page
 	}) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		const play = page.getByRole('button', { name: 'Putar' });
 		await expect(play).toHaveAccessibleDescription('Pintasan: P');
 		await page.getByRole('radio', { name: '4x' }).check();
@@ -227,16 +227,25 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 		await expect(undo).toHaveAttribute('aria-disabled', 'true');
 	});
 
-	test('ganti skenario meminta konfirmasi setelah ada kemajuan', async ({ page }) => {
-		await gotoReady(page, '/lab');
-		const select = page.getByLabel('Skenario awal');
-		await select.selectOption('alami');
+	test('ganti skenario kembali ke Pilih Skenario dan mulai ulang meminta konfirmasi', async ({
+		page
+	}) => {
+		await gotoReady(page, '/lab/alami');
 		await expect(cell(page, 3, 1)).toHaveAttribute('aria-label', /: Hutan\. Air segmen: Baik\.$/);
 		await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
-		await select.selectOption('kota-padat');
-		const dialog = page.getByRole('dialog', { name: 'Ganti skenario?' });
+		await page.getByRole('link', { name: 'Ganti skenario' }).click();
+		await expect(page).toHaveURL(/\/lab$/);
+		await page.getByRole('link', { name: 'Kota Padat' }).click();
+		await expect(page).toHaveURL(/\/lab\/kota-padat$/);
+		await expect(hud(page).getByText('Tahun 1, Januari (bulan 0)')).toBeVisible();
+		await expect(cell(page, 4, 1)).toHaveAttribute('aria-label', /: Permukiman padat\./);
+		await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
+		await expect(hud(page)).toContainText('(bulan 1)');
+		await closeEventDialog(page);
+		await page.getByRole('button', { name: 'Mulai ulang' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Mulai ulang skenario?' });
 		await expect(dialog).toBeVisible();
-		await dialog.getByRole('button', { name: 'Ganti' }).click();
+		await dialog.getByRole('button', { name: 'Mulai ulang' }).click();
 		await expect(dialog).toBeHidden();
 		await expect(hud(page).getByText('Tahun 1, Januari (bulan 0)')).toBeVisible();
 		await expect(cell(page, 4, 1)).toHaveAttribute('aria-label', /: Permukiman padat\./);
@@ -247,7 +256,7 @@ test.describe('Lab: inspektor, tabel, dan grafik', () => {
 	test('inspektor mengikuti segmen yang difokus dan Mode Ilmiah menampilkan tabel parameter', async ({
 		page
 	}) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		await page.getByRole('tab', { name: 'Inspektor' }).click();
 		const inspector = page.getByRole('region', { name: 'Inspektor Segmen' });
 		await expect(inspector.getByRole('heading', { level: 3 })).toHaveText('Segmen 1 Hulu Atas');
@@ -271,7 +280,7 @@ test.describe('Lab: inspektor, tabel, dan grafik', () => {
 	});
 
 	test('tampilan tabel dibuka lewat tombol dan pintasan T', async ({ page }) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		const toggle = page.getByRole('button', { name: 'Tampilan Tabel' });
 		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 		await toggle.click();
@@ -294,7 +303,7 @@ test.describe('Lab: inspektor, tabel, dan grafik', () => {
 	});
 
 	test('grafik riwayat punya ringkasan dan tabel data', async ({ page }) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		for (let i = 0; i < 3; i += 1) await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
 		await page.getByRole('tab', { name: 'Riwayat' }).click();
 		const figure = page.getByRole('figure');
@@ -311,7 +320,7 @@ test.describe('Lab: tata letak responsif dan performa', () => {
 		page
 	}) => {
 		await page.setViewportSize({ width: 360, height: 740 });
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		const factoryTool = page.getByRole('radio', { name: 'Pabrik', exact: true });
 		await factoryTool.check();
 		await expect(page.getByText('Alat terpilih: Pabrik', { exact: true })).toBeVisible();
@@ -345,7 +354,7 @@ test.describe('Lab: tata letak responsif dan performa', () => {
 		page
 	}) => {
 		await page.setViewportSize({ width: 800, height: 900 });
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		const toggle = page.getByRole('button', { name: 'Tampilkan panel' });
 		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 		await toggle.click();
@@ -378,8 +387,7 @@ test.describe('Lab: tata letak responsif dan performa', () => {
 		browserName
 	}) => {
 		test.skip(browserName !== 'chromium', 'Frame diukur di Chromium saja');
-		await gotoReady(page, '/lab');
-		await page.getByLabel('Skenario awal').selectOption('kota-padat');
+		await gotoReady(page, '/lab/kota-padat');
 		await cell(page, 1, 1).focus();
 		await page.evaluate(() => {
 			window.frameGaps = [];

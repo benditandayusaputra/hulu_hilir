@@ -225,7 +225,7 @@ function lastOf(items: readonly SimState[]): SimState {
 	return last;
 }
 
-function applyPending(state: SimState, pending: readonly Action[]): SimState {
+export function applyPending(state: SimState, pending: readonly Action[]): SimState {
 	let working = state;
 	for (const action of pending) {
 		const result = applyAction(working, action);
@@ -308,11 +308,15 @@ export class SimulationSession {
 	}
 
 	reset(scenario: Scenario, seed = this.seed): void {
+		this.restore([createInitialState(scenario, seed)], [], seed);
+	}
+
+	restore(snapshots: readonly SimState[], pending: readonly Action[], seed: number): void {
 		this.pause();
 		this.seed = seed;
-		this.snapshots = [createInitialState(scenario, seed)];
-		this.log = [];
-		this.pending = [];
+		this.snapshots = snapshots;
+		this.log = snapshots.flatMap((snapshot) => snapshot.actions);
+		this.pending = pending;
 		this.selection = null;
 		this.selectedTool = null;
 		this.focusedSegment = 1;

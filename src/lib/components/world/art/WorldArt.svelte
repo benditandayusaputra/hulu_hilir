@@ -18,7 +18,8 @@
 	import WasteBank from './WasteBank.svelte';
 	import WaterItems from './WaterItems.svelte';
 	import Wildlife from './Wildlife.svelte';
-	import { worldPalette } from './symbols';
+	import { seaPath } from '$lib/world/layout';
+	import { worldPalette, worldStroke } from './symbols';
 
 	const statuses: WaterStatus[] = ['good', 'light', 'moderate', 'heavy'];
 </script>
@@ -36,6 +37,33 @@
 			<stop offset="0.7" stop-color={worldPalette.outline} stop-opacity="0.2" />
 			<stop offset="1" stop-color={worldPalette.outline} stop-opacity="0" />
 		</radialGradient>
+		<pattern id="world-water-pattern-light" width="22" height="22" patternUnits="userSpaceOnUse">
+			<circle cx="6" cy="6" r="2.4" fill={worldPalette.foam} />
+			<circle cx="17" cy="16" r="2" fill={worldPalette.foam} />
+		</pattern>
+		<pattern id="world-water-pattern-moderate" width="18" height="18" patternUnits="userSpaceOnUse">
+			<path
+				d="M-3 21 L21 -3 M-3 3 L3 -3 M15 21 L21 15"
+				stroke={worldPalette.murk}
+				stroke-width="2.5"
+			/>
+		</pattern>
+		<pattern id="world-water-pattern-heavy" width="16" height="16" patternUnits="userSpaceOnUse">
+			<path d="M0 16 L16 0 M0 0 L16 16" stroke="#8C825E" stroke-width="2" />
+		</pattern>
+		<clipPath id="world-sea-clip">
+			<path d={seaPath} />
+		</clipPath>
+		<pattern id="world-sea-waves" width="180" height="110" patternUnits="userSpaceOnUse">
+			<path
+				d="M20 30 q10 -7 20 0 t20 0 t20 0 M110 84 q10 -7 20 0 t20 0 t20 0"
+				fill="none"
+				stroke={worldPalette.foam}
+				stroke-width={worldStroke.large}
+				stroke-linecap="round"
+				opacity="0.8"
+			/>
+		</pattern>
 		{#each statuses as status (status)}
 			<RiverPiece {status} />
 		{/each}

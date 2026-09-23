@@ -82,7 +82,9 @@
 				</a>
 				<a
 					href={labHref}
-					aria-current={page.url.pathname === labHref ? 'page' : undefined}
+					aria-current={page.url.pathname === labHref || page.url.pathname.startsWith(`${labHref}/`)
+						? 'page'
+						: undefined}
 					class={linkClass}
 				>
 					{ui.lab}

@@ -216,16 +216,68 @@ export const presetNames: Record<LabPresetId, string> = {
 	'lahan-kosong': 'Lahan Kosong'
 };
 
+export const demoPresetId = 'demo';
+export const labRouteIds = [...labPresetIds, demoPresetId] as const;
+export type LabRouteId = (typeof labRouteIds)[number];
+
+export function labRouteIdOf(value: string | null | undefined): LabRouteId | null {
+	return labRouteIds.find((id) => id === value) ?? null;
+}
+
+export function labRouteName(id: LabRouteId): string {
+	return id === demoPresetId ? 'Demo' : presetNames[id];
+}
+
+export type ScenarioLevel = 'easy' | 'medium' | 'hard';
+
+export const scenarioLevelNames: Record<ScenarioLevel, string> = {
+	easy: 'Mudah',
+	medium: 'Sedang',
+	hard: 'Menantang'
+};
+
+export const presetCards: Record<LabPresetId, { story: string; level: ScenarioLevel }> = {
+	alami: {
+		story: 'Hutan lebat dari hulu sampai muara dan air masih jernih. Bisakah kamu menjaganya?',
+		level: 'easy'
+	},
+	desa: {
+		story: 'Desa dan sawah mulai tumbuh di tengah sungai, sementara hutan hulu masih utuh.',
+		level: 'medium'
+	},
+	'kota-padat': {
+		story: 'Permukiman padat memenuhi hilir, dan sampah serta limbahnya mengalir ke muara.',
+		level: 'hard'
+	},
+	'lahan-kosong': {
+		story: 'Semua lahan gundul, jadi hujan membawa lumpur dan banjir datang cepat.',
+		level: 'hard'
+	}
+};
+
+export const picker = {
+	pageTitle: 'Pilih Skenario | Hulu Hilir',
+	title: 'Pilih Skenario',
+	lead: 'Pilih sungai yang ingin kamu olah. Setiap skenario menyimpan kemajuannya sendiri di perangkat ini.',
+	level: 'Tingkat',
+	initial: 'Kondisi awal',
+	outOf: 'dari 100',
+	saved: (month: number) => `Tersimpan: bulan ${month}`
+} as const;
+
 export const lab = {
-	pageTitle: 'Lab Bebas | Hulu Hilir',
+	pageTitle: (scenario: string) => `Lab Bebas: ${scenario} | Hulu Hilir`,
 	title: 'Lab Bebas',
 	lead: 'Susun bantaran sungai, jalankan waktu, lalu lihat dampaknya dari hulu sampai muara.',
 	skipToStage: 'Lewati ke panggung sungai',
 	skipToTime: 'Lewati ke kontrol waktu',
-	scenarioLabel: 'Skenario awal',
-	scenarioChangeTitle: 'Ganti skenario?',
-	scenarioChangeBody: 'Riwayat dan aksi di Lab saat ini akan hilang.',
-	confirm: 'Ganti',
+	scenarioLabel: 'Skenario',
+	changeScenario: 'Ganti skenario',
+	restart: 'Mulai ulang',
+	restartTitle: 'Mulai ulang skenario?',
+	restartBody: (scenario: string) =>
+		`Bulan dan semua aksi di ${scenario} akan dihapus dari perangkat ini.`,
+	sessionReset: 'Sesi tersimpan untuk skenario ini tidak bisa dibaca, jadi Lab dimulai dari awal.',
 	cancel: 'Batal',
 	stageLabel: 'Sungai, 6 segmen dari hulu ke muara',
 	waterCell: 'air',

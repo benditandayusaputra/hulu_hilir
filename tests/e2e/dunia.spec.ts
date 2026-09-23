@@ -26,7 +26,7 @@ test.describe('Dunia Sungai', () => {
 	test('tombol kamera memperbesar, memperkecil, dan memperlihatkan seluruh sungai', async ({
 		page
 	}) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		await expect.poll(() => zoomOf(page)).toBeGreaterThan(0);
 		const fit = await zoomOf(page);
 		await page.getByRole('button', { name: 'Perbesar' }).click();
@@ -40,7 +40,7 @@ test.describe('Dunia Sungai', () => {
 	});
 
 	test('pintasan + - 0 dan F menggerakkan kamera dari area simulasi', async ({ page }) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		await expect.poll(() => zoomOf(page)).toBeGreaterThan(0);
 		const fit = await zoomOf(page);
 		await cell(page, 4, 1).focus();
@@ -61,7 +61,7 @@ test.describe('Dunia Sungai', () => {
 		page,
 		browserName
 	}) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		await page.getByRole('link', { name: 'Lewati ke panggung sungai' }).focus();
 		await page.keyboard.press('Enter');
 		await page.keyboard.press(tabKey(browserName));
@@ -78,7 +78,7 @@ test.describe('Dunia Sungai', () => {
 	test('klik lahan di dunia memilih petak yang sama dan membuka panel aksi yang sama', async ({
 		page
 	}) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		await cell(page, 4, 3).focus();
 		await expect.poll(() => plotOffset(page, 'S4-R1')).toBeLessThan(40);
 		await page.locator('[data-plot="S4-R2"] use').nth(1).click();
@@ -96,7 +96,7 @@ test.describe('Dunia Sungai', () => {
 		page,
 		browserName
 	}) => {
-		await gotoReady(page, '/lab');
+		await gotoReady(page, '/lab/desa');
 		const tab = tabKey(browserName);
 		const factoryTool = page.getByRole('radio', { name: 'Pabrik', exact: true });
 		await factoryTool.focus();
