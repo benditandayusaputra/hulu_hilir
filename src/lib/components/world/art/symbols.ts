@@ -97,6 +97,15 @@ export const birdEgret = symbol('bird-egret', 40, 50);
 export const birdFlying = symbol('bird-flying', 44, 24);
 export const signboard = symbol('signboard', 130, 96);
 
+export const clouds = {
+	white: symbol('cloud', 360, 190),
+	grey: symbol('cloud-grey', 360, 190),
+	rain: symbol('cloud-rain', 420, 190),
+	storm: symbol('cloud-storm', 420, 190)
+} as const;
+export type CloudKind = keyof typeof clouds;
+export const cloudShadow = symbol('cloud-shadow', 380, 110);
+
 export const mountains = symbol('mountains', 520, 260);
 export const hills = symbol('hills', 460, 190);
 export const city = symbol('city', 480, 230);

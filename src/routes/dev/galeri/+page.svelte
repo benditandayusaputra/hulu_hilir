@@ -24,6 +24,8 @@
 		birdFlying,
 		boat,
 		city,
+		cloudShadow,
+		clouds,
 		denseSettlement,
 		factory,
 		fishSymbols,
@@ -132,8 +134,28 @@
 				{ symbol: beach, name: assets.beach },
 				{ symbol: sea, name: assets.sea }
 			]
+		},
+		{
+			title: gallery.groups.weather,
+			entries: [
+				{ symbol: clouds.white, name: assets.cloudWhite },
+				{ symbol: clouds.grey, name: assets.cloudGrey },
+				{ symbol: clouds.rain, name: assets.cloudRain },
+				{ symbol: clouds.storm, name: assets.cloudStorm },
+				{ symbol: cloudShadow, name: assets.cloudShadow }
+			]
 		}
 	];
+
+	const skyScenes = [
+		{ cloud: clouds.white, name: assets.cloudWhite, slant: null },
+		{ cloud: clouds.grey, name: assets.cloudGrey, slant: null },
+		{ cloud: clouds.rain, name: assets.cloudRain, slant: 0 },
+		{ cloud: clouds.storm, name: assets.cloudStorm, slant: 26 }
+	];
+	const SKY_GROUND = 350;
+	const SKY_TOP = 30;
+	const rainColumns = Array.from({ length: 14 }, (_, index) => 80 + index * 24);
 
 	const themes = ['light', 'dark'] as const;
 
@@ -230,6 +252,57 @@
 			</ul>
 		</section>
 	{/each}
+</section>
+
+<section aria-labelledby="galeri-langit" class="mb-14">
+	<h2 id="galeri-langit" class="mb-2 text-2xl">{gallery.skyHeading}</h2>
+	<p class="mb-4 max-w-[var(--measure-prose)] text-ink-muted">{gallery.skyIntro}</p>
+	<ul class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+		{#each skyScenes as scene (scene.cloud.id)}
+			<li>
+				<figure>
+					<div
+						class="overflow-hidden rounded-[var(--radius-control)] border-[1.5px] border-ink/10"
+						style:background-color={worldPalette.grassLight}
+					>
+						<svg
+							aria-hidden="true"
+							focusable="false"
+							viewBox="0 0 520 420"
+							class="block h-auto w-full"
+						>
+							<use
+								href="#{cloudShadow.id}"
+								x={60 + scene.cloud.width / 2 - cloudShadow.width / 2 + 90}
+								y={SKY_GROUND - cloudShadow.height / 2 + 20}
+								width={cloudShadow.width}
+								height={cloudShadow.height}
+							/>
+							{#if scene.slant !== null}
+								<g stroke="#E6F4FF" stroke-width="3" stroke-linecap="round" opacity="0.85">
+									{#each rainColumns as x, order (x)}
+										{@const top = SKY_TOP + 176 + (order % 3) * 14}
+										<path
+											d="M{x} {top} l{scene.slant * 0.3} 34 M{x + scene.slant * 0.55} {top +
+												62} l{scene.slant * 0.3} 34"
+										/>
+									{/each}
+								</g>
+							{/if}
+							<use
+								href="#{scene.cloud.id}"
+								x={60}
+								y={SKY_TOP}
+								width={scene.cloud.width}
+								height={scene.cloud.height}
+							/>
+						</svg>
+					</div>
+					<figcaption class="mt-1 text-sm">{scene.name}</figcaption>
+				</figure>
+			</li>
+		{/each}
+	</ul>
 </section>
 
 <section aria-labelledby="galeri-potongan" class="mb-14">

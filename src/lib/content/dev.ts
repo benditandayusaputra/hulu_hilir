@@ -17,7 +17,8 @@ export const gallery = {
 		water: 'Air sungai per status mutu',
 		life: 'Kehidupan dan benda di sungai',
 		markers: 'Penanda',
-		backdrop: 'Latar'
+		backdrop: 'Latar',
+		weather: 'Cuaca'
 	},
 	assets: {
 		plot: 'Petak lahan kosong',
@@ -52,8 +53,16 @@ export const gallery = {
 		hills: 'Bukit dan sawah di tengah',
 		city: 'Kota di hilir',
 		beach: 'Pantai di muara',
-		sea: 'Laut'
+		sea: 'Laut',
+		cloudWhite: 'Awan putih bulat bertumpuk',
+		cloudGrey: 'Awan putih keabuan saat musim hujan',
+		cloudRain: 'Awan hujan abu-biru berperut datar',
+		cloudStorm: 'Awan hujan gelap saat hujan ekstrem',
+		cloudShadow: 'Bayangan awan di tanah'
 	},
+	skyHeading: 'Awan di atas tanah',
+	skyIntro:
+		'Awan melayang di atas tanah dan bayangannya jatuh ke kanan bawah karena cahaya datang dari kiri atas. Hujan turun dari perut awan sampai ke tanah, dan di dunia garis hujan digeser sebagai pola.',
 	fish: {
 		sensitive: 'Siluet ikan sensitif',
 		intermediate: 'Siluet ikan menengah',

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { WaterStatus } from '$lib/sim';
 	import Backdrop from './Backdrop.svelte';
+	import Clouds from './Clouds.svelte';
 	import Factory from './Factory.svelte';
 	import Floodgate from './Floodgate.svelte';
 	import Forest from './Forest.svelte';
@@ -95,5 +96,6 @@
 		<Signboard />
 		<Backdrop />
 		<Props />
+		<Clouds />
 	</defs>
 </svg>
