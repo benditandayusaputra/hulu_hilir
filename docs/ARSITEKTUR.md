@@ -55,7 +55,7 @@ Nama petak dan sel air dirangkai oleh `content/lab.ts` mengikuti pola bagian 9.3
 
 ## Tata letak responsif
 
-Lab memakai mode `immersive` di `AppShell`: dunia memenuhi layar di antara header dan footer ringkas, dan halaman tidak pernah bergulir. Lapisan HUD di atas dunia adalah satu grid CSS dengan area bernama, sehingga tidak ada elemen yang saling tindih ketika tinggi layar berubah:
+Lab memakai mode `immersive` di `AppShell`: `main` menjadi lapisan `absolute inset-0` di belakang header, footer tidak dirender, dan halaman tidak pernah bergulir. Header tetap di tempatnya tetapi mengambang di atas dunia; tingginya diukur lewat `bind:offsetHeight` dan diteruskan sebagai `--shell-header`, sehingga grid HUD mulai tepat di bawahnya. Lapisan HUD di atas dunia adalah satu grid CSS dengan area bernama, sehingga tidak ada elemen yang saling tindih ketika tinggi layar berubah:
 
 | Lebar           | Area grid                                                                                 |
 | --------------- | ----------------------------------------------------------------------------------------- |
@@ -63,13 +63,55 @@ Lab memakai mode `immersive` di `AppShell`: dunia memenuhi layar di antara heade
 | 640 sampai 1023 | `hud`, `chips`, `free` dan `side` (tombol kamera serta laci panel), `bar` dan `time`      |
 | 1024 ke atas    | `hud`, lalu `map` yang merentang dua baris di kiri, `free` dan `side`, `bar` dan `time`   |
 
-Kolom `side` berisi tombol kamera dan panel samping dalam satu wadah flex, sehingga saat panel dilipat tombol kamera tetap menempel di tepi kanan. Kontrol waktu berada di kolom yang sama, jadi lebarnya mengikuti panel. Lebar layar dibaca lewat dua `matchMedia` karena wujud DOM berganti: panel samping terbuka di desktop, menjadi laci di tablet, dan menjadi `Sheet` di ponsel. Di ponsel footer disembunyikan dan tombol Pengaturan serta Bantuan hanya memperlihatkan ikon, dengan teks tersembunyi sebagai nama.
+Kolom `side` berisi tombol kamera dan panel samping dalam satu wadah flex, sehingga saat panel dilipat tombol kamera tetap menempel di tepi kanan. Kontrol waktu berada di kolom yang sama, jadi lebarnya mengikuti panel. Lebar layar dibaca lewat dua `matchMedia` karena wujud DOM berganti: panel samping terbuka di desktop, menjadi laci di tablet, dan menjadi `Sheet` di ponsel. Di ponsel tombol Pengaturan serta Bantuan hanya memperlihatkan ikon, dengan teks tersembunyi sebagai nama.
 
 Panel aksi petak di desktop diposisikan dengan `@floating-ui/dom`. Rujukannya adalah elemen virtual yang titiknya dihitung dari pusat lahan (atau jangkar segmen untuk sel air) lewat `worldToScreen`, dan batasnya elemen kosong `lab-free` yang menutupi baris tengah dan baris hotbar di kolom tengah. Panel boleh menutupi hotbar karena ia popover sementara, tetapi tidak pernah menutupi HUD, Peta Petak, atau panel samping. `autoUpdate` menangani perubahan ukuran panel, sedangkan satu `$effect` terpisah memanggil ulang posisi setiap kali state `WorldCamera` berubah, supaya panel ikut bergeser saat kamera terbang tanpa memasang ulang observer tiap bingkai. Bacaan state kamera di dalam rujukan dibungkus `untrack`. Di lebar lain panel aksi menjadi `Sheet`.
 
 Guliran panel aksi ada di elemen `section` luarnya, bukan di badan kertas. Firefox memasukkan wadah gulir ke urutan Tab, dan wadah yang berada setelah judul akan menyela urutan judul, pilihan aksi, lalu tombol Pasang.
 
 Tabel ringkasan sungai dipecah menjadi dua tabel lima kolom dan tidak ada wilayah gulir horizontal, karena wilayah gulir membutuhkan `tabindex="0"` yang ditolak compiler Svelte untuk elemen non-interaktif.
+
+## Rute Lab dan sesi tersimpan
+
+Lab punya dua rute. `/lab` adalah Layar Pilih Skenario: grid `<ul>` berisi empat kartu kertas, dan tautan di `h2` tiap kartu diperluas ke seluruh kartu lewat `::after`, sehingga satu kartu satu tab stop. Cincin fokus digambar pada `::after` itu, bukan pada teks tautan. Angka meter mini diambil dari `createInitialState` saat prerender, sedangkan lencana Tersimpan dan pratinjau state tersimpan baru dihitung di browser setelah halaman tampil, karena `localStorage` tidak ada saat prerender. `/lab?preset={id}` dialihkan di browser dengan `goto(..., { replaceState: true })`, karena parameter query tidak tersedia saat prerender.
+
+`/lab/[skenario]` memakai `+page.ts` dengan `entries` untuk empat skenario Lab dan demo, serta `prerender = 'auto'`. Dengan begitu kelima rute tetap diprerender, sedangkan id yang tidak dikenal masih sampai ke `load` di server dan dialihkan ke `/lab`. Halaman membuat `SimulationSession` dari id rute, lalu satu `$effect` memanggil `openScenario` saat id berubah. Hal itu terjadi saat halaman pertama dibuka dan saat pindah langsung dari satu skenario ke skenario lain, karena SvelteKit memakai ulang komponen halaman yang sama.
+
+Penyimpanan ada di `src/lib/state/labStorage.ts`. Kunci `hh:session:lab:{id}` berisi `schemaVersion`, id skenario, seed, bulan, dan aksi (`log` ditambah `pending`). State tidak ikut disimpan: `replayLabSession` memutar ulang aksi sampai bulan tersimpan lewat `replay` mesin, dan aksi bertanda bulan berikutnya menjadi `pending` lagi. `SimulationSession.restore` memasang snapshot hasil replay dan menurunkan `log` dari `state.actions` tiap snapshot, sama seperti yang dilakukan `step()`. Satu `$effect` menulis ulang kunci setiap kali bulan, `log`, atau `pending` berubah. Sesi tanpa bulan dan tanpa aksi menghapus kuncinya, sehingga Mulai ulang dan Kembali ke bulan 0 cukup mereset sesi. Demo tidak pernah dibaca maupun ditulis. Data yang gagal validasi Valibot atau gagal diputar ulang dihapus, lalu toast memberi tahu pemain bahwa Lab dimulai dari awal.
+
+`WorldPreview` (`src/lib/components/world/WorldPreview.svelte`) memakai ulang lapisan dunia yang sama pada tingkat Peta DAS dengan `viewBox` tetap 4000 × 3000, tanpa kamera, dengan `data-paused` agar gelombang laut diam. Halaman yang memakainya wajib memasang `WorldArt` sekali. Pola air, `clipPath` laut, dan gradien laut pindah dari `WorldRiver` dan `WorldSea` ke `WorldArt`, karena empat pratinjau di satu halaman akan menggandakan id SVG.
+
+## Layar penuh dan antarmuka tersembunyi
+
+Tombol Sembunyikan antarmuka mengubah `shell.uiHidden`. Header dan grid HUD Lab memakai kelas `ui-layer`: saat elemen itu `inert`, CSS memudarkannya lalu memberi `visibility: hidden` setelah transisi selesai, sehingga elemen hilang dari urutan fokus dan pohon aksesibilitas. Saat tampil lagi, `visibility` langsung kembali agar fokus bisa dipulihkan tanpa menunggu transisi. `AppShell` tidak merender tautan lewati milik halaman selama antarmuka tersembunyi, sedangkan tautan ke konten utama tetap ada. Panel aksi yang terbuka ditutup saat menyembunyikan, dan klik lahan di dunia diabaikan selama tersembunyi, karena panelnya tidak akan terlihat.
+
+Elemen yang terakhir difokus disimpan sebelum menyembunyikan, lalu fokus pindah ke tombol Tampilkan antarmuka di klaster kanan bawah. H, tombol itu, atau Escape (hanya bila tidak ada `dialog[open]`) mengembalikan fokus ke elemen tadi, atau ke tombol Sembunyikan bila elemen itu sudah hilang. Escape diperiksa sebelum pengaturan pintasan satu huruf, karena Escape bukan pintasan huruf. Keadaan tersembunyi direset setiap kali Lab dipasang atau dilepas.
+
+Tombol Layar penuh hanya dirender bila `document.fullscreenEnabled`, memanggil `requestFullscreen` pada elemen akar, dan labelnya mengikuti event `fullscreenchange`. Ikon maximize dipakai tombol ini, sehingga Lihat seluruh sungai memakai ikon peta.
+
+Karena dunia sekarang juga mengisi area di luar 4000 × 3000 unit pada layar yang lebih lebar atau lebih tinggi dari rasio 4:3, rumput latar dan laut digambar melewati batas dunia. Gradien laut memakai `gradientUnits="userSpaceOnUse"` supaya warnanya di dalam dunia tidak berubah ketika bentuk laut diperpanjang.
+
+## Cuaca di dunia
+
+Keadaan cuaca dihitung oleh `src/lib/world/weather.ts` dari state yang sudah ada, tanpa angka baru dari mesin:
+
+| `data-weather` | Sumber                                          | Gambar                                              |
+| -------------- | ----------------------------------------------- | --------------------------------------------------- |
+| `extreme`      | kejadian `extreme_rain` bulan ini               | 12 awan gelap menutupi DAS, hujan miring, redup 22% |
+| `heavy`        | kejadian `heavy_rain` bulan ini                 | 8 awan hujan, paling rapat di hulu, redup 12%       |
+| `drought`      | `droughtActive`, atau musim kemarau tanpa hujan | 1 awan putih kecil, rona hangat 6%                  |
+| `cloudy`       | musim hujan tanpa hujan lebat                   | 5 awan putih keabuan, redup 5%                      |
+| `clear`        | peralihan                                       | 3 awan putih                                        |
+
+Baris Kemarau dan Kemarau Panjang di tabel spesifikasi punya gambar yang sama, jadi keduanya menulis `drought`. Jumlah awan, ketinggian, peredupan, dan pola hujan adalah konstanta di `src/lib/world/constants.ts`. Detail Dunia Ringan mengambil setiap awan kedua.
+
+Lapisan cuaca ada di dalam `<g>` kamera, jadi ikut digeser dan di-zoom. `WorldRunoff` digambar di bawah lahan: tiga garis coklat pendek dari tiap lahan bukan hutan menuju tepi sungai, dengan tebal `runoffOf(tile) × RUNOFF_WIDTH_PER_C`, sehingga biopori dan kematangan hutan ikut terlihat. Bagian garis di bawah lahan tertutup lahan itu sendiri. `WorldWeather` digambar paling atas dengan urutan: tirai peredup, tetes resap di hutan matang dan sabuk hijau aktif, cipratan di air (hanya zoom Dekat dan Detail Penuh), bayangan awan, hujan, lalu awan. Semuanya `pointer-events="none"`, sehingga klik tetap sampai ke lahan.
+
+Hujan adalah satu `<rect>` berisi pola garis yang dipotong `clipPath` berisi kolom hujan di bawah setiap awan. Animasinya hanya menggeser `rect` sejauh satu ubin pola, jadi pola tidak pernah terputus. Hujan ekstrem memakai ubin miring dan digeser serong sejauh satu ubin mendatar dan dua ubin tegak, sesuai kemiringan garisnya. Skala pola berganti per tingkat detail supaya di Peta DAS garisnya jarang dan tetap terlihat. Masuk dan keluarnya awan serta hujan memakai `fade` 1 detik.
+
+Aturan gerak 9.5 dijalankan di `RiverWorld`. Lapisan cuaca mendapat `data-moving` bila tab terlihat, gerak tidak dikurangi, dan simulasi berjalan atau semburan 4 detik sedang aktif. Semburan dimulai sekali untuk setiap bulan hujan yang baru tampil saat simulasi dijeda (lewat Maju 1 bulan, pemulihan sesi, atau Kembali ke bulan), dan bila bulan itu membuka Kabar Kali, semburan menunggu dialog ditutup. Tanpa `data-moving`, animasi dijeda di tempat, sehingga garis hujan tetap terlihat sebagai gambar diam. Awan bergeser pelan, dan limpasan, tetes resap, serta cipratan mengikuti aturan yang sama. Pada zoom Dekat awan memudar ke 40%.
+
+Di Chromium tanpa GPU, geser kamera saat Hujan Ekstrem di zoom Dekat mencatat sekitar 56 fps, juga dengan CPU diperlambat empat kali. Uji `tests/e2e/cuaca.spec.ts` menjaga batas minimal 30 fps.
 
 ## Kulit game
 

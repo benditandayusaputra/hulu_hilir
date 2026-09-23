@@ -28,7 +28,7 @@ pnpm preview
 
 ## Lab Bebas
 
-Halaman `/lab` memakai mesin simulasi lewat `SimulationSession` (`src/lib/state/simulation.svelte.ts`). Panggung sungai adalah grid HTML dengan petak sebagai tombol sungguhan, satu tab stop dengan roving tabindex, nama petak dan sel air mengikuti pola pembaca layar di spesifikasi, dan pintasan satu huruf (P, N, 1 sampai 3, I, T, ?) yang bisa dimatikan di Pengaturan. Palet alat, panel aksi, kontrol waktu, indikator, inspektor segmen, Tampilan Tabel, dan grafik riwayat tersusun ulang di tiga lebar layar: lembar di ponsel, tab di tablet, tiga kolom di desktop. Preset awal dipilih lewat `?preset=alami|desa|kota-padat|lahan-kosong`. Keputusan desainnya dicatat di [docs/ARSITEKTUR.md](docs/ARSITEKTUR.md).
+Halaman `/lab` adalah Layar Pilih Skenario, dan Lab tiap skenario ada di `/lab/{skenario}`. Lab memakai mesin simulasi lewat `SimulationSession` (`src/lib/state/simulation.svelte.ts`). Panggung sungai adalah grid HTML dengan petak sebagai tombol sungguhan, satu tab stop dengan roving tabindex, nama petak dan sel air mengikuti pola pembaca layar di spesifikasi, dan pintasan satu huruf (P, N, 1 sampai 3, I, T, ?) yang bisa dimatikan di Pengaturan. Palet alat, panel aksi, kontrol waktu, indikator, inspektor segmen, Tampilan Tabel, dan grafik riwayat tersusun ulang di tiga lebar layar: lembar di ponsel, tab di tablet, tiga kolom di desktop. Skenario dibuka lewat `/lab/alami`, `/lab/desa`, `/lab/kota-padat`, `/lab/lahan-kosong`, atau `/lab/demo`, dan sesi tiap skenario kecuali demo tersimpan di perangkat. Tautan lama `/lab?preset={id}` dialihkan ke rute baru. Keputusan desainnya dicatat di [docs/ARSITEKTUR.md](docs/ARSITEKTUR.md).
 
 ## Mesin simulasi
 
