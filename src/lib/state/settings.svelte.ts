@@ -5,12 +5,14 @@ export const textSizeOptions = ['normal', 'large', 'larger'] as const;
 export const motionOptions = ['system', 'full', 'reduced'] as const;
 export const narrationOptions = ['off', 'important', 'normal'] as const;
 export const audienceOptions = ['smp', 'sma'] as const;
+export const worldDetailOptions = ['auto', 'light', 'full'] as const;
 
 export type Theme = (typeof themeOptions)[number];
 export type TextSize = (typeof textSizeOptions)[number];
 export type MotionPreference = (typeof motionOptions)[number];
 export type NarrationFrequency = (typeof narrationOptions)[number];
 export type AudienceLevel = (typeof audienceOptions)[number];
+export type WorldDetail = (typeof worldDetailOptions)[number];
 
 export interface SettingsSnapshot {
 	theme: Theme;
@@ -21,6 +23,7 @@ export interface SettingsSnapshot {
 	narratorVoice: boolean;
 	scientificMode: boolean;
 	keyboardShortcuts: boolean;
+	worldDetail: WorldDetail;
 }
 
 export const settingsStorageKey = 'hh:settings';
@@ -34,7 +37,8 @@ export const defaultSettings: SettingsSnapshot = {
 	audience: 'smp',
 	narratorVoice: false,
 	scientificMode: false,
-	keyboardShortcuts: true
+	keyboardShortcuts: true,
+	worldDetail: 'auto'
 };
 
 export function pickOption<T extends string>(
@@ -65,7 +69,8 @@ export function parseSettings(raw: unknown): SettingsSnapshot {
 		audience: pickOption(record['audience'], audienceOptions, defaultSettings.audience),
 		narratorVoice: pickBoolean(record['narratorVoice'], defaultSettings.narratorVoice),
 		scientificMode: pickBoolean(record['scientificMode'], defaultSettings.scientificMode),
-		keyboardShortcuts: pickBoolean(record['keyboardShortcuts'], defaultSettings.keyboardShortcuts)
+		keyboardShortcuts: pickBoolean(record['keyboardShortcuts'], defaultSettings.keyboardShortcuts),
+		worldDetail: pickOption(record['worldDetail'], worldDetailOptions, defaultSettings.worldDetail)
 	};
 }
 
@@ -92,6 +97,7 @@ export class Settings {
 	narratorVoice = $state(defaultSettings.narratorVoice);
 	scientificMode = $state(defaultSettings.scientificMode);
 	keyboardShortcuts = $state(defaultSettings.keyboardShortcuts);
+	worldDetail = $state<WorldDetail>(defaultSettings.worldDetail);
 
 	snapshot(): SettingsSnapshot {
 		return {
@@ -102,7 +108,8 @@ export class Settings {
 			audience: this.audience,
 			narratorVoice: this.narratorVoice,
 			scientificMode: this.scientificMode,
-			keyboardShortcuts: this.keyboardShortcuts
+			keyboardShortcuts: this.keyboardShortcuts,
+			worldDetail: this.worldDetail
 		};
 	}
 
@@ -115,6 +122,7 @@ export class Settings {
 		this.narratorVoice = snapshot.narratorVoice;
 		this.scientificMode = snapshot.scientificMode;
 		this.keyboardShortcuts = snapshot.keyboardShortcuts;
+		this.worldDetail = snapshot.worldDetail;
 	}
 
 	load(): void {
