@@ -3,13 +3,14 @@
 
 	interface Props {
 		children: Snippet;
+		nails?: boolean;
 		class?: string;
 	}
 
-	let { children, class: className = '' }: Props = $props();
+	let { children, nails = true, class: className = '' }: Props = $props();
 </script>
 
-<div class="wood-plank {className}">
+<div class="wood-plank {className}" class:bare={!nails}>
 	{@render children()}
 </div>
 
@@ -71,6 +72,10 @@
 			1px 0 0 var(--color-outline),
 			-1px 0 0 var(--color-outline),
 			0 2px 0 var(--color-outline);
+	}
+
+	.bare {
+		--nail: none;
 	}
 
 	.wood-plank :global(:is(h1, h2, h3)) {

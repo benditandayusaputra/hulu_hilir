@@ -52,6 +52,13 @@
 	--color-wood-dark: light-dark(#6e4526, #3e2a1e);
 	--color-wood-grain: light-dark(#6a4224, #3a261a);
 	--color-wood-edge: light-dark(#a06b3b, #6a4a30);
+	--color-paper: light-dark(#fff8ea, #2a2420);
+	--color-paper-2: light-dark(#f3e7cf, #342b24);
+	--color-paper-edge: light-dark(#d8c39c, #54463a);
+	--color-newsprint: light-dark(#f2ecde, #2c2823);
+	--color-news-ink: light-dark(#26231e, #ece5d6);
+	--color-stamp: light-dark(#b8322a, #f28b7e);
+	--color-glow: #ffd84d;
 
 	--dur-fast: 150ms;
 	--dur-base: 250ms;
