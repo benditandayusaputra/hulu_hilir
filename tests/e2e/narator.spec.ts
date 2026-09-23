@@ -44,7 +44,7 @@ test.describe('Narator dan kejadian', () => {
 		await expect(dialog.getByText(/^Kabar Kali, /)).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Putar' })).toBeVisible();
 		await expect(
-			page.getByRole('region', { name: 'Kontrol waktu' }).getByText(/\(bulan 2\)/)
+			page.getByRole('region', { name: 'Lab Bebas' }).getByText(/\(bulan 2\)/)
 		).toBeVisible();
 		await dialog.getByRole('button', { name: 'Lanjutkan' }).click();
 		await expect(dialog).toBeHidden();

@@ -119,7 +119,7 @@ test.describe('Dunia Sungai', () => {
 		await expect(page.locator('[data-plot="S3-L1"] use[href="#world-factory"]')).toHaveCount(1);
 		await page.keyboard.press('n');
 		if ((await page.getByRole('dialog').count()) > 0) await page.keyboard.press('Escape');
-		await expect(page.getByRole('region', { name: 'Kontrol waktu' })).toContainText('(bulan 1)');
+		await expect(page.getByRole('region', { name: 'Lab Bebas' })).toContainText('(bulan 1)');
 		await expect(cell(page, 3, 1)).toHaveAttribute(
 			'aria-label',
 			/^Segmen 3 Tengah, kiri dekat sungai: Pabrik tanpa IPAL\. Air segmen: /

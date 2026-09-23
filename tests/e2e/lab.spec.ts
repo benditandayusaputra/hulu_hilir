@@ -11,8 +11,8 @@ function cell(page: Page, segment: number, column: number) {
 	return page.locator(`[data-cell="${segment}-${column}"]`);
 }
 
-function timeControls(page: Page) {
-	return page.getByRole('region', { name: 'Kontrol waktu' });
+function hud(page: Page) {
+	return page.getByRole('region', { name: 'Lab Bebas' });
 }
 
 async function closeEventDialog(page: Page): Promise<void> {
@@ -185,7 +185,7 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 		const quality = page.getByRole('meter', { name: 'Kualitas Air' });
 		const before = await quality.getAttribute('aria-valuenow');
 		for (let i = 0; i < 6; i += 1) await stepWithKeyboard(page);
-		await expect(timeControls(page).getByText('Tahun 1, Juni (bulan 6)')).toBeVisible();
+		await expect(hud(page).getByText('Tahun 1, Juni (bulan 6)')).toBeVisible();
 		await expect(quality).not.toHaveAttribute('aria-valuenow', before ?? '');
 		await expect(quality).toHaveAttribute('aria-valuetext', /dari 100, (naik|turun|tetap)/);
 	});
@@ -211,7 +211,7 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 		await page.getByRole('radio', { name: '4x' }).check();
 		await play.click();
 		await expect(page.getByRole('button', { name: 'Jeda' })).toBeVisible();
-		await expect(timeControls(page).getByText(/\(bulan [1-9]\d*\)/)).toBeVisible();
+		await expect(hud(page).getByText(/\(bulan [1-9]\d*\)/)).toBeVisible();
 		await page.getByRole('button', { name: 'Jeda' }).click();
 		await expect(page.getByRole('button', { name: 'Putar' })).toBeVisible();
 		const undo = page.getByRole('button', { name: 'Batalkan aksi terakhir' });
@@ -238,7 +238,7 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 		await expect(dialog).toBeVisible();
 		await dialog.getByRole('button', { name: 'Ganti' }).click();
 		await expect(dialog).toBeHidden();
-		await expect(timeControls(page).getByText('Tahun 1, Januari (bulan 0)')).toBeVisible();
+		await expect(hud(page).getByText('Tahun 1, Januari (bulan 0)')).toBeVisible();
 		await expect(cell(page, 4, 1)).toHaveAttribute('aria-label', /: Permukiman padat\./);
 	});
 });
@@ -392,7 +392,7 @@ test.describe('Lab: tata letak responsif dan performa', () => {
 			requestAnimationFrame(tick);
 		});
 		for (let i = 0; i < 60; i += 1) await stepWithKeyboard(page);
-		await expect(timeControls(page).getByText('Tahun 5, Desember (bulan 60)')).toBeVisible();
+		await expect(hud(page).getByText('Tahun 5, Desember (bulan 60)')).toBeVisible();
 		const gaps = await page.evaluate(() => window.frameGaps ?? []);
 		const total = gaps.reduce((sum, gap) => sum + gap, 0);
 		const fps = (gaps.length / total) * 1000;
