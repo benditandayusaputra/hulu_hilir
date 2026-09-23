@@ -121,6 +121,18 @@ export const actionNames: Record<ActionType, string> = {
 	seal_illegal_outlet: 'Sidak dan Segel Saluran'
 };
 
+export const actionShortNames: Partial<Record<ActionType, string>> = {
+	biopori: 'Biopori',
+	eco_farming: 'Pertanian Ramah',
+	greenbelt: 'Sabuk Hijau',
+	dredging: 'Pengerukan',
+	river_cleanup: 'Kerja Bakti',
+	clear_hyacinth: 'Eceng Gondok',
+	enforcement: 'Pengawasan',
+	floodgate: 'Pintu Air',
+	seal_illegal_outlet: 'Segel Saluran'
+};
+
 export const actionEffects: Record<ActionType, string> = {
 	plant_forest: 'Menjadi hutan muda yang matang dalam 30 bulan.',
 	ipal_industrial: 'BOD turun 85%, TSS 80%, coliform 90%, Cr VI 90%.',
@@ -244,6 +256,7 @@ export const lab = {
 	effect: 'Efek',
 	cashAfter: 'Kas setelah aksi',
 	cashUnlimited: 'Tanpa batas (Lab)',
+	cashShort: 'Kas kurang',
 	currentState: 'Keadaan sekarang',
 	installed: 'Terpasang',
 	pendingBadge: 'Menunggu bulan depan',
@@ -296,6 +309,8 @@ export const lab = {
 	failsStandard: 'Melewati baku',
 	belowStandard: 'Di bawah baku',
 	tableToggle: 'Tampilan Tabel',
+	tableTogglePrefix: 'Tampilan',
+	tableToggleShort: 'Tabel',
 	tableCaption: 'Ringkasan seluruh sungai pada bulan',
 	tableStatusCaption: 'Status, ikan, dan risiko banjir per segmen',
 	tableParameterCaption: 'Parameter mutu air dan sampah per segmen',

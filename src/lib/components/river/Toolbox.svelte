@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Undo2 from '@lucide/svelte/icons/undo-2';
+	import HotbarSlot from '$lib/components/hud/art/HotbarSlot.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import { actionErrorMessage, lab } from '$lib/content/lab';
-	import { formatBillions } from '$lib/format/number';
+	import { actionErrorMessage, actionShortNames, lab } from '$lib/content/lab';
+	import { formatBillions, formatBillionsShort } from '$lib/format/number';
 	import {
 		getSession,
 		toolCost,
@@ -33,6 +34,9 @@
 	};
 
 	const selectedId = $derived(session.selectedTool === null ? null : toolId(session.selectedTool));
+	const showStrip = $derived(
+		!compact || session.selectedTool !== null || session.pending.length > 0
+	);
 
 	function costText(tool: Tool): string {
 		const cost = toolCost(tool);
@@ -48,7 +52,7 @@
 
 	function shortCost(tool: Tool): string {
 		const cost = toolCost(tool);
-		return cost === 0 ? lab.free : formatBillions(cost).replace(' miliar', ' M');
+		return cost === 0 ? lab.free : formatBillionsShort(cost);
 	}
 
 	function unavailableReason(tool: Tool): string {
@@ -58,18 +62,20 @@
 	}
 </script>
 
-<div class="flex min-w-0 flex-col gap-2">
-	<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm {compact ? '' : 'min-h-9'}">
-		{#if session.selectedTool === null}
-			<span class={compact ? 'sr-only' : 'text-ink-muted'}>{lab.toolHint}</span>
-		{:else}
-			<span>{lab.toolSelected}: <strong>{toolName(session.selectedTool)}</strong></span>
-			<Button variant="ghost" size="sm" onclick={() => (session.selectedTool = null)}>
-				{lab.releaseTool}
-			</Button>
-		{/if}
-		{#if !compact || session.pending.length > 0}
-			<span class="ml-auto">
+<div class="flex min-w-0 flex-col gap-1">
+	{#if showStrip}
+		<div class="paper flex flex-wrap items-start gap-x-3 gap-y-1 px-3 py-1.5 text-sm">
+			<div class="flex min-h-9 min-w-0 flex-1 basis-56 flex-wrap items-center gap-x-3 gap-y-1">
+				{#if session.selectedTool === null}
+					<span class={compact ? 'sr-only' : 'text-ink-muted'}>{lab.toolHint}</span>
+				{:else}
+					<span>{lab.toolSelected}: <strong>{toolName(session.selectedTool)}</strong></span>
+					<Button variant="ghost" size="sm" onclick={() => (session.selectedTool = null)}>
+						{lab.releaseTool}
+					</Button>
+				{/if}
+			</div>
+			{#if !compact || session.pending.length > 0}
 				<Button
 					variant="secondary"
 					size="sm"
@@ -81,44 +87,41 @@
 					{/snippet}
 					{lab.undo}
 				</Button>
-			</span>
-		{/if}
-	</div>
-	<div class="hotbar flex gap-3 overflow-x-auto pb-1">
+			{/if}
+		</div>
+	{:else}
+		<span class="sr-only">{lab.toolHint}</span>
+	{/if}
+	<div class="flex gap-4 overflow-x-auto px-1 pt-2 pb-2">
 		{#each toolGroups as group (group.id)}
-			<fieldset class="flex shrink-0 flex-col gap-1">
-				<legend class="mb-1 px-1 text-sm font-medium text-ink-muted">{groupNames[group.id]}</legend>
-				<div class="flex gap-1.5">
+			<fieldset class="flex shrink-0 flex-col">
+				<legend class="mb-1 px-1 text-sm font-bold">{groupNames[group.id]}</legend>
+				<div class="flex gap-2 pt-1.5">
 					{#each group.tools as tool (toolId(tool))}
 						{@const id = `${baseId}-${toolId(tool)}`}
 						{@const reason = unavailableReason(tool)}
 						{@const Icon = toolIcon(tool)}
-						<div class="relative">
-							<input
-								{id}
-								type="radio"
-								name="{baseId}-{group.id}"
-								value={toolId(tool)}
-								checked={selectedId === toolId(tool)}
-								onchange={() => (session.selectedTool = tool)}
-								aria-describedby="{id}-detail"
-								class="peer absolute inset-0 size-full cursor-pointer appearance-none rounded-[var(--radius-control)]"
-							/>
-							<label
-								for={id}
-								data-unavailable={reason === '' ? undefined : ''}
-								class="pointer-events-none flex h-full min-h-11 w-24 flex-col items-center gap-0.5 rounded-[var(--radius-control)] border-[1.5px] border-ink/15 bg-surface px-1.5 py-1.5 text-center text-sm leading-tight transition-transform duration-[var(--dur-fast)] ease-[var(--ease-out)] peer-checked:-translate-y-1 peer-checked:border-primary peer-checked:bg-surface-2 peer-checked:ring-2 peer-checked:ring-primary data-unavailable:opacity-70"
-							>
-								<Icon size={22} aria-hidden="true" />
-								<span class="font-medium">{toolName(tool)}</span>
-								<span aria-hidden="true" class="text-ink-muted" data-numeric>{shortCost(tool)}</span
-								>
-							</label>
-							<span id="{id}-detail" class="sr-only">
-								{costText(tool)}. {toolEffect(tool)}
-								{#if reason !== ''}{reason}{/if}
-							</span>
-						</div>
+						<HotbarSlot
+							{id}
+							name="{baseId}-{group.id}"
+							value={toolId(tool)}
+							checked={selectedId === toolId(tool)}
+							label={toolName(tool)}
+							shortLabel={tool.choice === undefined
+								? (actionShortNames[tool.type] ?? toolName(tool))
+								: toolName(tool)}
+							cost={shortCost(tool)}
+							reason={reason === '' ? '' : lab.cashShort}
+							describedBy="{id}-detail"
+							{compact}
+							onchange={() => (session.selectedTool = tool)}
+						>
+							{#snippet icon()}<Icon size={compact ? 20 : 24} aria-hidden="true" />{/snippet}
+						</HotbarSlot>
+						<span id="{id}-detail" class="sr-only">
+							{costText(tool)}. {toolEffect(tool)}
+							{#if reason !== ''}{reason}{/if}
+						</span>
 					{/each}
 				</div>
 			</fieldset>

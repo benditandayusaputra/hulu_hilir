@@ -30,6 +30,10 @@ export function formatBillions(value: number): string {
 	return `Rp ${billionFormatter.format(value)} miliar`;
 }
 
+export function formatBillionsShort(value: number): string {
+	return `${billionFormatter.format(value)} M`;
+}
+
 const COMPACT_THRESHOLD = 10000;
 
 export function formatCompact(value: number): string {

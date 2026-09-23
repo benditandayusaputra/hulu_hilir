@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	formatBillions,
+	formatBillionsShort,
 	formatCompact,
 	formatNumber,
 	formatPercent,
@@ -20,6 +21,11 @@ describe('formatBillions', () => {
 		expect(formatBillions(8)).toBe('Rp 8 miliar');
 		expect(formatBillions(0.5)).toBe('Rp 0,5 miliar');
 		expect(formatBillions(0.15)).toBe('Rp 0,15 miliar');
+	});
+
+	it('meringkas miliar menjadi M untuk slot hotbar', () => {
+		expect(formatBillionsShort(8)).toBe('8 M');
+		expect(formatBillionsShort(0.5)).toBe('0,5 M');
 	});
 });
 
