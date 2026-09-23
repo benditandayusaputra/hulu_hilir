@@ -242,11 +242,13 @@ export const presetCards: Record<LabPresetId, { story: string; level: ScenarioLe
 		level: 'easy'
 	},
 	desa: {
-		story: 'Desa dan sawah mulai tumbuh di tengah sungai, sementara hutan hulu masih utuh.',
+		story:
+			'Desa dan sawah mulai tumbuh di sekitar Segmen Tengah, sementara hutan di hulu masih utuh.',
 		level: 'medium'
 	},
 	'kota-padat': {
-		story: 'Permukiman padat memenuhi hilir, dan sampah serta limbahnya mengalir ke muara.',
+		story:
+			'Permukiman padat memenuhi Segmen Kota dan Hilir, lalu sampah serta limbahnya hanyut ke Muara.',
 		level: 'hard'
 	},
 	'lahan-kosong': {
