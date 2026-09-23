@@ -186,8 +186,8 @@
 		width: 3.5rem;
 		height: 0.625rem;
 		overflow: hidden;
-		background: var(--color-wood-dark);
-		border: 2px solid var(--color-outline);
+		background: var(--color-surface-2);
+		border: 2px solid color-mix(in oklab, var(--color-ink) 55%, transparent);
 		border-radius: 9999px;
 	}
 
