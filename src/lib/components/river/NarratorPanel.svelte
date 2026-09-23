@@ -9,12 +9,6 @@
 	import { getSession, type Tool } from '$lib/state/simulation.svelte';
 	import { getCamera } from '$lib/world/camera.svelte';
 
-	interface Props {
-		compact?: boolean;
-	}
-
-	let { compact = false }: Props = $props();
-
 	const session = getSession();
 	const camera = getCamera();
 	const TYPING_MAX_MS = 1500;
@@ -99,7 +93,7 @@
 				{/if}
 			</div>
 		{/if}
-		{#if fact !== null && !compact}
+		{#if fact !== null}
 			<p class="rounded-[var(--radius-control)] bg-surface-2 px-3 py-2 text-sm">
 				<strong>{narration.factLabel}</strong>
 				{fact.text}
@@ -108,7 +102,7 @@
 	{:else}
 		<p class="text-sm text-ink-muted">{narration.empty}</p>
 	{/if}
-	{#if older.length > 0 && !compact}
+	{#if older.length > 0}
 		<Disclosure summary={narration.history}>
 			<ol class="flex flex-col gap-2 text-sm">
 				{#each older as entry (entry.id)}
