@@ -69,7 +69,7 @@
 </symbol>
 
 <symbol id={waterItems.bag} overflow="visible">
-	<path d="M-4 -6 C-5 -11 1 -11 0 -6 M2 -7 C2 -11 7 -10 5 -5" fill="none" {...small} />
+	<path d="M-2 -6 L-1 -11 L3 -10 L2 -6 Z" fill={bag} {...small} />
 	<path d="M-9 3 C-11 -3 -6 -7 -1 -6 C4 -8 10 -4 9 2 C8 7 -6 8 -9 3 Z" fill={bag} />
 	<path d="M9 2 C8 7 -6 8 -9 3 C-3 5 4 4 9 2 Z" fill={bagShade} />
 	<path

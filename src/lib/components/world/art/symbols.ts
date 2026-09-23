@@ -1,4 +1,4 @@
-import type { WaterStatus } from '$lib/sim';
+import type { FishGroup, WaterStatus } from '$lib/sim';
 
 export interface WorldSymbol {
 	id: string;
@@ -51,17 +51,63 @@ export const outlineLarge = {
 
 export const outlineSmall = { ...outlineLarge, 'stroke-width': worldStroke.small } as const;
 
-export const forestMature: WorldSymbol = { id: 'world-forest-mature', width: 220, height: 200 };
+function symbol(id: string, width: number, height: number): WorldSymbol {
+	return { id: `world-${id}`, width, height };
+}
 
-export const house: WorldSymbol = { id: 'world-house', width: 120, height: 124 };
+export const plot = symbol('plot', 240, 150);
 
-export const factory: WorldSymbol = { id: 'world-factory', width: 230, height: 212 };
+export const forestStages = [
+	symbol('forest-seedling', 200, 120),
+	symbol('forest-young', 200, 150),
+	symbol('forest-teen', 210, 180),
+	symbol('forest-mature', 220, 200)
+] as const;
+
+export const paddyStages = {
+	planted: symbol('paddy-planted', 240, 160),
+	harvest: symbol('paddy-harvest', 240, 160)
+} as const;
+
+export const houseVariants = {
+	cream: symbol('house', 120, 124),
+	mint: symbol('house-mint', 120, 124),
+	peach: symbol('house-peach', 120, 124)
+} as const;
+
+export const settlement = symbol('settlement', 250, 230);
+export const denseSettlement = symbol('dense-settlement', 230, 220);
+export const factory = symbol('factory', 230, 212);
+export const openLand = symbol('open-land', 220, 140);
+export const ipal = symbol('ipal', 230, 190);
+export const wasteBank = symbol('waste-bank', 210, 170);
+export const retentionPond = symbol('retention-pond', 230, 160);
+export const greenbelt = symbol('greenbelt', 280, 140);
+export const floodgate = symbol('floodgate', 250, 200);
+
+export const fishSymbols: Record<FishGroup, WorldSymbol> = {
+	sensitive: symbol('fish-sensitive', 40, 20),
+	intermediate: symbol('fish-intermediate', 40, 24),
+	tolerant: symbol('fish-tolerant', 44, 22)
+};
+
+export const boat = symbol('boat', 110, 60);
+export const hyacinth = symbol('hyacinth', 64, 48);
+export const birdEgret = symbol('bird-egret', 40, 50);
+export const birdFlying = symbol('bird-flying', 44, 24);
+export const signboard = symbol('signboard', 130, 96);
+
+export const mountains = symbol('mountains', 520, 260);
+export const hills = symbol('hills', 460, 190);
+export const city = symbol('city', 480, 230);
+export const beach = symbol('beach', 420, 170);
+export const sea = symbol('sea', 480, 170);
 
 export const riverPieces: Record<WaterStatus, WorldSymbol> = {
-	good: { id: 'world-river-good', width: 260, height: 170 },
-	light: { id: 'world-river-light', width: 260, height: 170 },
-	moderate: { id: 'world-river-moderate', width: 260, height: 170 },
-	heavy: { id: 'world-river-heavy', width: 260, height: 170 }
+	good: symbol('river-good', 260, 170),
+	light: symbol('river-light', 260, 170),
+	moderate: symbol('river-moderate', 260, 170),
+	heavy: symbol('river-heavy', 260, 170)
 };
 
 export const waterItems = {
@@ -74,6 +120,13 @@ export const waterItems = {
 	deadFish: 'world-dead-fish',
 	sludge: 'world-sludge'
 } as const;
+
+export interface Trunk {
+	x: number;
+	top: number;
+	bottom: number;
+	width: number;
+}
 
 export interface Circle {
 	x: number;
@@ -112,3 +165,31 @@ export const waterTones: Record<WaterStatus, WaterTone> = {
 export function tuftPath(x: number, y: number): string {
 	return `M${x} ${y} c-1 -3 -3 -5 -5 -6 c3 0 5 2 6 4 c0 -3 1 -6 3 -8 c0 3 0 6 -1 9 c1 -2 3 -3 5 -3 c-2 1 -3 2 -4 4 Z`;
 }
+
+export const depth = { x: 0.6, y: -0.38 } as const;
+
+export interface PrismFaces {
+	front: string;
+	side: string;
+	top: string;
+}
+
+export function prismFaces(
+	x: number,
+	base: number,
+	width: number,
+	height: number,
+	deep: number
+): PrismFaces {
+	const dx = deep * depth.x;
+	const dy = deep * depth.y;
+	const top = base - height;
+	const right = x + width;
+	return {
+		front: `M${x} ${base} L${right} ${base} L${right} ${top} L${x} ${top} Z`,
+		side: `M${right} ${base} L${right + dx} ${base + dy} L${right + dx} ${top + dy} L${right} ${top} Z`,
+		top: `M${x} ${top} L${right} ${top} L${right + dx} ${top + dy} L${x + dx} ${top + dy} Z`
+	};
+}
+
+export const ellipseRatio = 0.38;

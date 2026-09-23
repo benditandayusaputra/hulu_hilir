@@ -37,9 +37,9 @@
 	const lip = 'M0 44 C50 36 90 50 140 42 C190 34 220 38 260 44';
 	const farWater = 'M0 58 C50 52 90 64 140 56 C190 48 220 52 260 58';
 	const farWaterBack = 'L260 58 C220 52 190 48 140 56 C90 64 50 52 0 58 Z';
-	const nearWater = 'M0 128 C60 134 110 122 170 128 C230 134 240 132 260 126';
-	const nearRim = 'M0 124 C60 130 110 118 170 124 C230 130 240 128 260 122';
-	const sandEdge = 'M0 141 C60 147 110 135 170 141 C230 147 240 145 260 139';
+	const nearWater = 'M0 128 C60 134 110 122 170 128 C230 134 240 130 260 128';
+	const nearRim = 'M0 124 C60 130 110 118 170 124 C230 130 240 126 260 124';
+	const sandEdge = 'M0 141 C60 147 110 135 170 141 C230 147 240 143 260 141';
 
 	const tufts: Placed[] = [
 		{ x: 20, y: 24 },
@@ -231,7 +231,7 @@
 
 	<path d="{nearWater} L260 170 L0 170 Z" fill={p.sand} />
 	<path
-		d="{nearWater} L260 131 C240 137 230 139 170 133 C110 127 60 139 0 133 Z"
+		d="{nearWater} L260 133 C240 135 230 139 170 133 C110 127 60 139 0 133 Z"
 		fill={p.sandWet}
 	/>
 	<path d="{sandEdge} L260 170 L0 170 Z" fill={p.grassLight} />
