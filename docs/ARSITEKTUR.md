@@ -31,23 +31,33 @@ Semua pesan dibuat oleh sesi, bukan komponen, karena sesi tahu kecepatan dan fre
 
 `Toaster.show` mengirim pesan ke `Announcer`, sehingga toast visual dan pengumuman selalu sejalan. `Announcer` menggabungkan pesan polite yang menumpuk dalam jeda 2 detik.
 
-## Panggung sungai
+## Dunia Sungai
 
-Panggung adalah grid HTML: setiap segmen `role="group"` dengan lima `<button>` (petak L2, L1, air, R1, R2). Navigasi memakai roving tabindex: hanya sel yang terakhir difokus yang punya `tabindex="0"`, sehingga panggung menjadi satu tab stop. Pemetaan tombol panah, Home, End, dan Ctrl ada di `navigation.ts` sebagai fungsi murni agar bisa diuji tanpa DOM. Penangan keydown dipasang pada tiap tombol, bukan pada wadah, supaya tidak ada elemen non-interaktif yang memegang penangan keyboard.
+Panggung utama Lab adalah satu `<svg>` 4000 × 3000 unit dengan satu `<g>` kamera yang ditransformasi (`src/lib/components/world/RiverWorld.svelte`). Seluruh lapisan dunia `aria-hidden`; semua yang bisa dilakukan tetikus di dunia juga bisa dilakukan lewat Peta Petak.
 
-Nama petak dan sel air dirangkai oleh `content/lab.ts` mengikuti pola bagian 9.3 spesifikasi. Saat alat terpilih, tiap sel mendapat `aria-describedby` ke teks tersembunyi yang berisi hasil pratinjau `applyAction`, sehingga alasan penolakan terbaca sebelum Enter ditekan.
+Logika dunia dipisah dari komponen di `src/lib/world/` supaya bisa diuji tanpa DOM:
 
-Ilustrasi petak memakai sprite `<symbol>` yang dirender sekali oleh `RiverSprites`, dan strip air diperbarui lewat custom property (`--water-color`, `--flow-duration`) tanpa merender ulang SVG.
+- `layout.ts` menyusun garis tengah sungai huruf S dari potongan lurus berkelok dan busur, mengambil sampel tiap 24 unit, lalu menurunkan jangkauan enam segmen, 24 lahan dengan ID yang sama dengan mesin (`S{segmen}-{sisi}{urutan}`), dan posisi papan nama. Sisi kiri dan kanan mengikuti arah aliran, jadi kiri berada di atas pada ruas yang mengalir ke timur dan di bawah pada ruas yang mengalir ke barat.
+- `camera.ts` berisi matematika kamera murni: zoom paling jauh memperlihatkan seluruh dunia, pusat kamera dibatasi agar dunia tidak hilang dari layar, zoom di titik kursor menahan titik dunia di bawah kursor, dan jendela culling dibulatkan ke grid 200 unit agar daftar objek tidak dihitung ulang tiap piksel geser.
+- `camera.svelte.ts` (`WorldCamera`) memegang state reaktif dan fly-to 600 ms lewat GSAP. Saat gerak dikurangi, kamera berpindah seketika. Kamera dibagikan lewat context, sehingga Peta Petak, narator, dan dialog kejadian bisa memanggil `flyToTile` atau `flyToSegment`.
+- `scene.ts` menurunkan apa yang digambar dari `SimState`: aset per lahan (tahap hutan, sawah tanam atau panen menurut bulan), properti intervensi petak, cincin progres selama masa bangun, sabuk hijau di bibir sungai, kolam retensi, pintu air, dan tanda benda air per status. Ujinya memastikan setiap status tercemar selalu membawa tanda benda, tidak hanya warna.
+- `detail.ts` memilih Detail Dunia: pilihan manual menang, sedangkan Otomatis memakai pemeriksaan instan bagian 8.6 (inti prosesor, memori, Save-Data, gerak dikurangi).
 
-## Gerak
+Tingkat detail mengikuti zoom. Pada Peta DAS hanya sungai, lahan, papan nama besar, dan lencana status yang tampil. Pada Segmen muncul sampah, ikan, eceng gondok, perahu, dan aliran. Pada Dekat, asap cerobong, sampah hanyut, dan ikan berenang ikut bergerak. Animasi air memakai `stroke-dashoffset` dan geser pola, tidak memakai filter SVG. Animasi berulang memakai kelas `world-loop` yang berhenti lewat `[data-paused]` saat simulasi dijeda atau tab tersembunyi, dan objek di luar jendela kamera tidak dirender.
 
-Partikel arus dan ikan memakai animasi CSS yang berhenti lewat `[data-paused]` saat simulasi dijeda atau tab tersembunyi. Mode gerak dikurangi mengganti partikel dengan chevron diam lewat CSS. Muka air banjir adalah satu-satunya tween GSAP: dibuat di dalam `gsap.matchMedia()` pada elemen akar panggung, ditambahkan ke `gsap.context()` lewat `context.add`, dan di-revert saat komponen dilepas. Warna air berpindah lewat transisi CSS 600 ms.
+Umpan balik game dipicu dari perubahan state, bukan dari tombol. Tanda tangan penggunaan lahan dan intervensi tiap lahan dibandingkan untuk memantulkan lahan dan menaburkan debu, penambahan aksi yang menunggu memunculkan angka biaya melayang, dan status segmen yang membaik memunculkan ikan melompat.
+
+## Peta Petak
+
+`RiverStage` tetap grid HTML: setiap segmen `role="group"` dengan lima `<button>` (petak L2, L1, air, R1, R2). Navigasi memakai roving tabindex sehingga Peta Petak menjadi satu tab stop, dengan pemetaan tombol di `navigation.ts` sebagai fungsi murni. Di desktop Peta Petak berupa varian ringkas di kiri bawah dengan kotak jendela kamera yang menandai segmen yang titik jangkarnya terlihat. Di bawah 1024 px Peta Petak dibuka sebagai `Sheet`. Fokus pada petak menerbangkan kamera ke lahan itu dan menyorotnya di dunia, klik lahan di dunia memilih petak yang sama, dan keduanya membuka panel aksi yang sama.
+
+Nama petak dan sel air dirangkai oleh `content/lab.ts` mengikuti pola bagian 9.3 spesifikasi. Saat alat terpilih, tiap sel mendapat `aria-describedby` ke teks tersembunyi yang berisi hasil pratinjau `applyAction`.
 
 ## Tata letak responsif
 
-Lebar layar dibaca lewat dua `matchMedia` (`phoneQuery`, `desktopQuery`) karena palet dan panel harus berganti wujud DOM, bukan sekadar gaya: `Sheet` di ponsel, `Tabs` di tablet, tiga kolom di desktop. Panel aksi petak menjadi kartu inline di kolom kanan pada desktop dan `Sheet` di lebar lain. HTML hasil prerender memakai tata letak desktop, lalu efek memperbaikinya saat hidrasi.
+Lab memakai mode `immersive` di `AppShell`: dunia memenuhi layar di antara header dan footer ringkas, dan halaman tidak pernah bergulir. Di atasnya mengambang HUD indikator, hotbar alat di bawah yang bergulir di dalam wadahnya sendiri, kontrol waktu di kanan bawah, kontrol kamera di kanan tengah, dan panel samping bertab (Narator, Inspektor, Riwayat). Lebar layar dibaca lewat dua `matchMedia` karena wujud DOM berganti: panel samping terbuka di desktop, menjadi laci di tablet, dan menjadi `Sheet` di ponsel. Panel aksi petak mengambang di samping lahan terpilih pada desktop dan menjadi `Sheet` di lebar lain.
 
-Tabel ringkasan sungai dipecah menjadi dua tabel lima kolom dan tidak ada wilayah gulir horizontal. Wilayah gulir membutuhkan `tabindex="0"` agar bisa digulir dengan keyboard, tetapi compiler Svelte menolak tabindex pada elemen non-interaktif, dan aturan proyek melarang menyembunyikan peringatan. Membuat konten muat di 320 px adalah jalan yang jujur.
+Tabel ringkasan sungai dipecah menjadi dua tabel lima kolom dan tidak ada wilayah gulir horizontal, karena wilayah gulir membutuhkan `tabindex="0"` yang ditolak compiler Svelte untuk elemen non-interaktif.
 
 ## Narator dan kejadian
 
