@@ -453,6 +453,82 @@
 		animation: world-splash 1200ms ease-out forwards;
 	}
 
+	.world-veil {
+		transition:
+			opacity 1s var(--ease-out),
+			fill 1s var(--ease-out);
+	}
+
+	.world-clouds {
+		transition: opacity var(--dur-slow) var(--ease-out);
+	}
+
+	.world-rain {
+		animation: world-rain 0.5s linear infinite paused;
+	}
+
+	.world-cloud-drift {
+		animation: world-cloud-drift 14s ease-in-out infinite alternate paused;
+	}
+
+	.world-runoff {
+		animation: world-runoff 1.1s linear infinite paused;
+	}
+
+	.world-soak {
+		transform-box: fill-box;
+		transform-origin: 50% 100%;
+		animation: world-soak 1.6s ease-in infinite paused;
+	}
+
+	.world-rain-splash {
+		transform-box: fill-box;
+		transform-origin: center;
+		animation: world-rain-splash 1.1s ease-out infinite paused;
+	}
+
+	[data-moving] :is(.world-rain, .world-cloud-drift, .world-runoff),
+	[data-moving] .world-soak,
+	[data-moving] .world-rain-splash {
+		animation-play-state: running;
+	}
+
+	@keyframes world-rain {
+		to {
+			transform: translate(var(--rain-dx), var(--rain-dy));
+		}
+	}
+
+	@keyframes world-cloud-drift {
+		to {
+			transform: translateX(40px);
+		}
+	}
+
+	@keyframes world-runoff {
+		to {
+			stroke-dashoffset: -38;
+		}
+	}
+
+	@keyframes world-soak {
+		70% {
+			opacity: 1;
+			transform: translateY(14px) scaleY(0.8);
+		}
+		100% {
+			opacity: 0;
+			transform: translateY(20px) scaleY(0.5);
+		}
+	}
+
+	@keyframes world-rain-splash {
+		to {
+			opacity: 0;
+			transform: scale(1.7);
+		}
+	}
+
 	@keyframes world-flow {
 		to {
 			stroke-dashoffset: -90;

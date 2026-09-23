@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import WeatherOverlay from '$lib/components/river/WeatherOverlay.svelte';
 	import { formatBillions } from '$lib/format/number';
 	import { type TileSideKey } from '$lib/content/lab';
 	import {
@@ -26,6 +25,7 @@
 		CULL_MARGIN,
 		DOUBLE_CLICK_ZOOM,
 		DRAG_THRESHOLD_PX,
+		RAIN_BURST_MS,
 		WHEEL_ZOOM_RATE
 	} from '$lib/world/constants';
 	import { probeDevice, resolveWorldDetail, type DeviceProbe } from '$lib/world/detail';
@@ -37,11 +37,14 @@
 		tileSignature,
 		type WorldEffect
 	} from '$lib/world/scene';
+	import { rainOf, runoffMarks, soakMarks, weatherKindOf, weatherScene } from '$lib/world/weather';
 	import WorldBackdrop from './WorldBackdrop.svelte';
 	import WorldOverlay from './WorldOverlay.svelte';
 	import WorldPlots from './WorldPlots.svelte';
 	import WorldRiver from './WorldRiver.svelte';
+	import WorldRunoff from './WorldRunoff.svelte';
 	import WorldSea from './WorldSea.svelte';
+	import WorldWeather from './WorldWeather.svelte';
 
 	interface Props {
 		focused: CellRef | null;
@@ -93,12 +96,13 @@
 		focused !== null && focused.column === WATER_COLUMN ? focused.segment : null
 	);
 
-	const rain = $derived(
-		session.latest.events.some(
-			(event) => event.type === 'heavy_rain' || event.type === 'extreme_rain'
-		)
-	);
-	const extreme = $derived(session.latest.events.some((event) => event.type === 'extreme_rain'));
+	const weatherKind = $derived(weatherKindOf(session.latest, session.calendar.season));
+	const raining = $derived(rainOf(weatherKind) !== null);
+	const weather = $derived(weatherScene(weatherKind, detail));
+	const runoff = $derived(raining ? runoffMarks(session.state) : []);
+	const soak = $derived(raining ? soakMarks(session.state) : []);
+	let rainBurst = $state(false);
+	const weatherMoving = $derived(!tabHidden && (session.playing || rainBurst) && !reducedMotion());
 
 	function reducedMotion(): boolean {
 		return document.documentElement.dataset['motion'] === 'reduced';
@@ -300,6 +304,36 @@
 		});
 	});
 
+	let shownRain: string | null = null;
+	let burstTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function stopRainBurst(): void {
+		if (burstTimer !== null) clearTimeout(burstTimer);
+		burstTimer = null;
+		rainBurst = false;
+	}
+
+	$effect(() => {
+		const key = raining ? `${session.scenario.id}:${session.month}` : null;
+		const blocked = session.pendingEvent !== null;
+		const playing = session.playing;
+		untrack(() => {
+			if (key === null) {
+				shownRain = null;
+				stopRainBurst();
+				return;
+			}
+			if (blocked || key === shownRain) return;
+			shownRain = key;
+			if (playing) return;
+			stopRainBurst();
+			rainBurst = true;
+			burstTimer = setTimeout(stopRainBurst, RAIN_BURST_MS);
+		});
+	});
+
+	$effect(() => stopRainBurst);
+
 	let lastMonth: number | null = null;
 	$effect(() => {
 		const month = session.month;
@@ -330,6 +364,7 @@
 	bind:this={container}
 	role="presentation"
 	data-paused={paused ? '' : undefined}
+	data-weather={weatherKind}
 	data-level={camera.level}
 	data-zoom={camera.ready ? camera.zoom.toFixed(3) : undefined}
 	data-center={camera.ready ? `${Math.round(camera.x)},${Math.round(camera.y)}` : undefined}
@@ -354,6 +389,12 @@
 					{detail}
 				/>
 				<WorldSea />
+				<WorldRunoff
+					visible={raining && camera.level !== 'far'}
+					marks={runoff}
+					moving={weatherMoving}
+					{detail}
+				/>
 				<WorldPlots
 					{views}
 					structures={objects.structures}
@@ -372,8 +413,15 @@
 					{focusedWater}
 					{effects}
 				/>
+				<WorldWeather
+					scene={weather}
+					{soak}
+					level={camera.level}
+					{detail}
+					moving={weatherMoving}
+					{cull}
+				/>
 			</g>
 		{/if}
 	</svg>
-	<WeatherOverlay {rain} {extreme} drought={session.latest.droughtActive} />
 </div>
