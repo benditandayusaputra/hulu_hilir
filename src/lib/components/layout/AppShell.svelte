@@ -1,4 +1,6 @@
 <script lang="ts">
+	import CircleHelp from '@lucide/svelte/icons/circle-help';
+	import Settings from '@lucide/svelte/icons/settings';
 	import type { Snippet } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -25,7 +27,7 @@
 	const homeHref = resolve('/');
 	const labHref = resolve('/lab');
 	const linkClass =
-		'rounded-[var(--radius-control)] px-3 py-2 font-medium aria-[current=page]:bg-surface-2';
+		'inline-flex min-h-11 items-center rounded-[var(--radius-control)] px-2.5 font-semibold aria-[current=page]:bg-surface aria-[current=page]:text-ink aria-[current=page]:text-shadow-none max-sm:text-base sm:px-3';
 
 	let settingsOpen = $state(false);
 	let systemPrefersDark = $state(false);
@@ -62,13 +64,14 @@
 <Toast />
 
 <div class="flex flex-col {shell.immersive ? 'h-dvh' : 'min-h-dvh'}">
-	<header class="border-b-[1.5px] border-ink/10 bg-surface">
+	<header class="wood relative z-10 rounded-none border-x-0 border-t-0">
 		<div
-			class="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 {shell.fullWidth
+			class="mx-auto flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-1 px-3 py-1.5 sm:px-4 {shell.fullWidth ||
+			shell.immersive
 				? 'max-w-[88rem]'
 				: 'max-w-6xl'}"
 		>
-			<a href={homeHref} class="font-display text-lg font-semibold">{ui.siteName}</a>
+			<a href={homeHref} class="plank-title text-base sm:text-xl">{ui.siteName}</a>
 			<nav aria-label={ui.mainNavLabel} class="flex flex-wrap items-center gap-1 sm:gap-2">
 				<a
 					href={homeHref}
@@ -85,10 +88,12 @@
 					{ui.lab}
 				</a>
 				<Button variant="secondary" size="sm" onclick={() => (settingsOpen = true)}>
-					{ui.settings}
+					{#snippet icon()}<Settings size={18} />{/snippet}
+					<span class="max-sm:sr-only">{ui.settings}</span>
 				</Button>
 				<Button variant="secondary" size="sm" onclick={() => (shell.helpOpen = true)}>
-					{ui.help}
+					{#snippet icon()}<CircleHelp size={18} />{/snippet}
+					<span class="max-sm:sr-only">{ui.help}</span>
 				</Button>
 			</nav>
 		</div>
@@ -104,15 +109,21 @@
 		{@render children()}
 	</main>
 
-	<footer class="border-t-[1.5px] border-ink/10 bg-surface-2">
+	<footer
+		class="wood rounded-none border-x-0 border-b-0 text-sm {shell.immersive ? 'max-sm:hidden' : ''}"
+	>
 		<div
-			class="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 px-4 text-sm text-ink-muted {shell.immersive
+			class="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 px-4 {shell.immersive
 				? 'py-1'
-				: 'py-6'} {shell.fullWidth || shell.immersive ? 'max-w-[88rem]' : 'max-w-6xl'}"
+				: 'py-5'} {shell.fullWidth || shell.immersive ? 'max-w-[88rem]' : 'max-w-6xl'}"
 		>
 			<p>{ui.copyright}</p>
 			<nav aria-label={ui.footerNavLabel}>
-				<a href={homeHref} class="rounded-[var(--radius-control)] px-2 py-1">{ui.home}</a>
+				<a
+					href={homeHref}
+					class="inline-flex min-h-6 items-center rounded-[var(--radius-control)] px-2 font-semibold"
+					>{ui.home}</a
+				>
 			</nav>
 		</div>
 	</footer>

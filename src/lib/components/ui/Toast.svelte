@@ -2,9 +2,9 @@
 	import { toaster, type ToastTone } from '$lib/state/toast.svelte';
 
 	const toneClass: Record<ToastTone, string> = {
-		info: 'border-primary',
-		success: 'border-leaf',
-		danger: 'border-danger'
+		info: 'border-l-primary',
+		success: 'border-l-leaf',
+		danger: 'border-l-danger'
 	};
 </script>
 
@@ -13,11 +13,7 @@
 	class="pointer-events-none fixed inset-x-4 top-4 z-40 flex flex-col items-center gap-2 sm:inset-x-auto sm:right-4 sm:items-end"
 >
 	{#each toaster.items as item (item.id)}
-		<p
-			class="max-w-sm rounded-[var(--radius-card)] border-[1.5px] border-l-4 border-ink/10 bg-surface px-4 py-3 text-sm text-ink shadow-lg {toneClass[
-				item.tone
-			]}"
-		>
+		<p class="paper max-w-sm border-l-[6px] px-4 py-2.5 text-sm {toneClass[item.tone]}">
 			{item.message}
 		</p>
 	{/each}
