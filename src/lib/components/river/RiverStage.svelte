@@ -66,7 +66,7 @@
 	{#if compact && firstInView !== null && lastInView !== null}
 		<span
 			aria-hidden="true"
-			class="camera-window pointer-events-none absolute -inset-x-1 rounded-[var(--radius-control)] border-[3px] border-primary"
+			class="camera-window pointer-events-none absolute -inset-x-1 rounded-[var(--radius-control)] border-[3px]"
 			style:--first={firstInView - 1}
 			style:--count={lastInView - firstInView + 1}
 		></span>

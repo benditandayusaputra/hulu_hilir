@@ -274,17 +274,19 @@
 	<section
 		bind:this={panel}
 		aria-labelledby={titleId}
-		class="rounded-[var(--radius-card)] border-[1.5px] border-primary/40 bg-surface p-4"
+		class="wood wood-nails flex min-h-0 flex-col gap-2 overflow-y-auto px-3 pt-3 pb-3.5"
 	>
 		<h2
 			id={titleId}
 			bind:this={heading}
 			tabindex="-1"
-			class="mb-3 text-lg focus-visible:outline-offset-4"
+			class="px-3 text-lg leading-tight focus-visible:outline-offset-4"
 		>
 			{title}
 		</h2>
-		{@render body()}
+		<div class="paper p-4">
+			{@render body()}
+		</div>
 	</section>
 {:else}
 	<Sheet bind:open={sheetOpen} {title}>

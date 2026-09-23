@@ -42,7 +42,7 @@
 	role="tablist"
 	aria-label={label}
 	bind:this={list}
-	class="flex flex-wrap gap-1 border-b-[1.5px] border-ink/10"
+	class="flex flex-wrap gap-1 border-b-2 border-paper-edge px-1"
 >
 	{#each tabs as tab, index (tab.id)}
 		<button
@@ -58,9 +58,9 @@
 			}}
 			onfocus={() => (focused = tab.id)}
 			onkeydown={(event) => handleKey(event, index)}
-			class="-mb-[1.5px] min-h-11 border-b-[3px] px-4 py-2 font-medium {active === tab.id
-				? 'border-primary text-ink'
-				: 'border-transparent text-ink-muted hover:text-ink'}"
+			class="-mb-[2px] min-h-11 rounded-t-[10px] border-2 px-3 py-2 font-medium {active === tab.id
+				? 'border-paper-edge border-b-surface bg-surface text-ink'
+				: 'border-transparent bg-surface-2 text-ink-muted hover:text-ink'}"
 		>
 			{tab.label}
 		</button>

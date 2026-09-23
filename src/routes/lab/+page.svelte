@@ -1,11 +1,14 @@
 <script lang="ts">
+	import { autoUpdate, computePosition, flip, offset, shift, size } from '@floating-ui/dom';
 	import Grid3x3 from '@lucide/svelte/icons/grid-3x3';
+	import PanelRight from '@lucide/svelte/icons/panel-right';
 	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
 	import Table2 from '@lucide/svelte/icons/table-2';
 	import X from '@lucide/svelte/icons/x';
 	import { setContext, tick, untrack } from 'svelte';
 	import { page } from '$app/state';
+	import RoundButton from '$lib/components/hud/art/RoundButton.svelte';
 	import LineChart from '$lib/components/charts/LineChart.svelte';
 	import EventDialog from '$lib/components/river/EventDialog.svelte';
 	import IndicatorPanel from '$lib/components/river/IndicatorPanel.svelte';
@@ -22,6 +25,7 @@
 	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
 	import Tabs from '$lib/components/ui/Tabs.svelte';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import WorldArt from '$lib/components/world/art/WorldArt.svelte';
 	import CameraControls from '$lib/components/world/CameraControls.svelte';
 	import RiverWorld from '$lib/components/world/RiverWorld.svelte';
@@ -48,9 +52,9 @@
 		WATER_COLUMN,
 		type CellRef
 	} from '$lib/state/simulation.svelte';
-	import { intersects } from '$lib/world/camera';
+	import { intersects, worldToScreen } from '$lib/world/camera';
 	import { cameraKey, WorldCamera } from '$lib/world/camera.svelte';
-	import { segmentLayout } from '$lib/world/layout';
+	import { plotById, segmentLayout } from '$lib/world/layout';
 
 	const defaultPreset: LabPresetId = 'desa';
 	const demoPreset = 'demo';
@@ -60,6 +64,8 @@
 	const presetSelectId = 'pilihan-skenario';
 	const tableId = 'tabel-sungai';
 	const sidePanelId = 'panel-samping';
+	const FLOAT_GAP_PX = 28;
+	const FLOAT_PADDING_PX = 8;
 
 	function presetOf(value: string | null): LabScenarioId {
 		if (value === demoPreset) return demoPreset;
@@ -95,6 +101,10 @@
 	let panelSheetOpen = $state(false);
 	let panelOpen = $state(true);
 	let activeTab = $state('narrator');
+	let floating = $state<HTMLDivElement | null>(null);
+	let freeArea = $state<HTMLDivElement | null>(null);
+	let floatPlaced = $state(false);
+	let repositionPanel: (() => void) | null = null;
 
 	let phoneMatch = $state(false);
 	let desktopMatch = $state(true);
@@ -157,6 +167,9 @@
 		return '';
 	});
 
+	const chipClass =
+		'paper inline-flex min-h-11 items-center gap-2 px-3 text-base font-semibold hover:bg-surface-2';
+
 	function flyToCell(cell: CellRef, close = false): void {
 		const tile = cellTileId(cell);
 		if (tile === null) void camera.flyToSegment(cell.segment, close);
@@ -187,6 +200,63 @@
 		if (mapButton !== null) mapButton.focus();
 		else stageSection?.focus();
 	}
+
+	function anchorOf(cell: CellRef): { x: number; y: number } {
+		const tile = cellTileId(cell);
+		const plot = tile === null ? null : plotById(tile);
+		return plot?.center ?? segmentLayout(cell.segment).anchor;
+	}
+
+	$effect(() => {
+		const element = floating;
+		const bounds = freeArea;
+		const cell = session.selection;
+		const stageRoot = root;
+		if (element === null || bounds === null || cell === null || stageRoot === null) return;
+		const reference = {
+			getBoundingClientRect: () =>
+				untrack(() => {
+					const origin = stageRoot.getBoundingClientRect();
+					const anchor = anchorOf(cell);
+					const point = worldToScreen(camera.current, camera.view, anchor.x, anchor.y);
+					return new DOMRect(origin.left + point.x, origin.top + point.y, 0, 0);
+				})
+		};
+		const update = (): void => {
+			void computePosition(reference, element, {
+				placement: 'right',
+				middleware: [
+					offset(FLOAT_GAP_PX),
+					flip({ boundary: bounds, fallbackPlacements: ['left', 'bottom', 'top'] }),
+					shift({ boundary: bounds, crossAxis: true, padding: FLOAT_PADDING_PX }),
+					size({
+						boundary: bounds,
+						padding: FLOAT_PADDING_PX,
+						apply: ({ availableHeight }) => {
+							element.style.maxHeight = `${Math.max(0, availableHeight)}px`;
+						}
+					})
+				]
+			}).then(({ x, y }) => {
+				element.style.left = `${x}px`;
+				element.style.top = `${y}px`;
+				floatPlaced = true;
+			});
+		};
+		repositionPanel = update;
+		const stop = autoUpdate(reference, element, update);
+		return () => {
+			stop();
+			repositionPanel = null;
+			floatPlaced = false;
+		};
+	});
+
+	$effect(() => {
+		void camera.current;
+		void camera.view;
+		repositionPanel?.();
+	});
 
 	function requestPreset(preset: LabScenarioId): void {
 		if (preset === currentPreset) return;
@@ -333,50 +403,50 @@
 		aria-labelledby="judul-peta-petak"
 		onfocusin={() => (stageFocused = true)}
 		onfocusout={() => (stageFocused = false)}
-		class="pointer-events-auto shrink-0 focus-visible:outline-offset-4 {desktop
-			? 'rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface/95 p-2 shadow-md'
-			: ''}"
+		class="pointer-events-auto focus-visible:outline-offset-4 {desktop
+			? 'lab-map wood wood-nails flex flex-col gap-1.5 px-3 pt-2 pb-3'
+			: 'flex flex-wrap gap-2'}"
 	>
-		<h2 id="judul-peta-petak" class="sr-only">{lab.tileMap}</h2>
+		<h2 id="judul-peta-petak" class={desktop ? 'px-1 text-base' : 'sr-only'}>{lab.tileMap}</h2>
 		{#if desktop}
 			{@render stageMap(true)}
 		{:else}
-			<div class="flex flex-wrap gap-2">
+			<button
+				type="button"
+				bind:this={mapButton}
+				aria-haspopup="dialog"
+				onclick={() => (mapOpen = true)}
+				class={chipClass}
+			>
+				<Grid3x3 size={20} aria-hidden="true" />
+				{lab.tileMap}
+			</button>
+			{#if viewport === 'phone'}
 				<button
 					type="button"
-					bind:this={mapButton}
 					aria-haspopup="dialog"
-					onclick={() => (mapOpen = true)}
-					class="inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] border-[1.5px] border-ink/15 bg-surface px-3 font-medium"
+					onclick={() => (panelSheetOpen = true)}
+					class={chipClass}
 				>
-					<Grid3x3 size={20} aria-hidden="true" />
-					{lab.tileMap}
+					<PanelRight size={20} aria-hidden="true" />
+					{lab.panelTitle}
 				</button>
-				{#if viewport === 'phone'}
-					<Button
-						variant="secondary"
-						aria-haspopup="dialog"
-						onclick={() => (panelSheetOpen = true)}
-					>
-						{lab.panelTitle}
-					</Button>
-				{/if}
-			</div>
+			{/if}
 		{/if}
 	</section>
 {/snippet}
 
 {#snippet tableToggle()}
-	<Button
-		variant="secondary"
-		size="sm"
+	<button
+		type="button"
 		aria-expanded={tableOpen}
 		aria-controls={tableId}
 		onclick={() => (tableOpen = !tableOpen)}
+		class={chipClass}
 	>
-		{#snippet icon()}<Table2 size={18} />{/snippet}
-		{lab.tableToggle}
-	</Button>
+		<Table2 size={20} aria-hidden="true" />
+		<span><span class="max-sm:sr-only">{lab.tableTogglePrefix}</span> {lab.tableToggleShort}</span>
+	</button>
 {/snippet}
 
 <RiverSprites />
@@ -391,29 +461,27 @@
 		}}
 	/>
 
-	<div class="pointer-events-none absolute inset-x-2 top-2 flex items-start gap-2">
+	<div class="lab-grid pointer-events-none absolute inset-2">
+		<div bind:this={freeArea} class="lab-free"></div>
+
 		<section
 			aria-labelledby="judul-lab"
-			class="pointer-events-auto flex min-w-0 flex-1 flex-wrap items-center gap-x-5 gap-y-2 rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface/95 px-3 py-2 shadow-md lg:flex-none"
+			class="lab-hud wood wood-nails pointer-events-auto flex min-w-0 flex-wrap items-center gap-x-6 gap-y-1.5 px-4 py-2 sm:px-5"
 		>
-			<h1 id="judul-lab" class="text-lg max-sm:sr-only">{lab.title}</h1>
-			{#if !desktop}
-				<div class="flex flex-wrap items-center gap-2 max-sm:w-full">
-					{@render stageSectionView()}
-					{@render tableToggle()}
-				</div>
-			{/if}
+			<h1 id="judul-lab" class="text-xl max-xl:sr-only">{lab.title}</h1>
 			<h2 class="sr-only">{lab.indicatorsTitle}</h2>
-			<div class="min-w-0 flex-1 max-lg:basis-full lg:flex-none">
+			<div class="min-w-0 max-lg:basis-full lg:flex-1">
 				<IndicatorPanel />
 			</div>
 			{#if weatherText !== '' || session.enforcementActive}
-				<p class="flex flex-wrap gap-1 text-sm">
+				<p class="flex flex-wrap gap-1 text-sm text-shadow-none">
 					{#if weatherText !== ''}
-						<span class="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5">{weatherText}</span>
+						<span class="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5 text-ink"
+							>{weatherText}</span
+						>
 					{/if}
 					{#if session.enforcementActive}
-						<span class="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5">
+						<span class="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5 text-ink">
 							{lab.enforcementActive}
 						</span>
 					{/if}
@@ -423,99 +491,101 @@
 				{@render tableToggle()}
 			{/if}
 		</section>
-	</div>
 
-	{#if tableOpen}
-		<section
-			id={tableId}
-			aria-labelledby="judul-tabel"
-			class="absolute top-28 left-1/2 z-20 max-h-[calc(100%-9rem)] w-[min(46rem,calc(100%-1rem))] -translate-x-1/2 overflow-auto rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-4 shadow-lg"
-		>
-			<div class="mb-3 flex items-start justify-between gap-2">
-				<h2 id="judul-tabel" class="text-lg">{lab.tableToggle}</h2>
-				<Button variant="ghost" size="sm" onclick={() => (tableOpen = false)}>
-					{#snippet icon()}<X size={18} />{/snippet}
-					{lab.closeTable}
-				</Button>
+		{#if desktop}
+			{@render stageSectionView()}
+		{:else}
+			<div class="lab-chips pointer-events-auto flex flex-wrap items-start gap-2">
+				{@render stageSectionView()}
+				{@render tableToggle()}
 			</div>
-			<RiverTableView />
-		</section>
-	{/if}
+		{/if}
 
-	{#if viewport !== 'phone'}
-		<aside
-			id={sidePanelId}
-			aria-label={lab.panelTitle}
-			class="pointer-events-auto absolute top-28 right-2 bottom-40 z-10 flex w-[min(22rem,calc(100%-1rem))] flex-col gap-3 overflow-y-auto rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface p-3 shadow-lg {panelOpen
-				? ''
-				: 'hidden'}"
+		<section
+			aria-labelledby="judul-hotbar"
+			class="lab-bar wood pointer-events-auto min-w-0 px-2 pt-2 pb-1 sm:px-3"
 		>
-			{@render scenarioPicker()}
-			{@render panelTabsView()}
-		</aside>
-	{/if}
+			<h2 id="judul-hotbar" class="sr-only">{lab.paletteTitle}</h2>
+			<Toolbox compact={!desktop} />
+		</section>
 
-	<div
-		class="pointer-events-none absolute top-1/2 z-10 -translate-y-1/2 {panelOpen &&
-		viewport !== 'phone'
-			? 'right-[calc(min(22rem,100%-1rem)+1.25rem)]'
-			: 'right-2'}"
-	>
-		<div class="pointer-events-auto flex flex-col gap-2">
+		<div class="lab-side flex min-h-0 items-center justify-end gap-2">
+			<div class="pointer-events-auto flex flex-col items-center gap-2">
+				{#if viewport !== 'phone'}
+					<Tooltip text={panelOpen ? lab.panelHide : lab.panelShow} side="left">
+						{#snippet children(describedBy)}
+							<RoundButton
+								label={panelOpen ? lab.panelHide : lab.panelShow}
+								aria-expanded={panelOpen}
+								aria-controls={sidePanelId}
+								aria-describedby={describedBy}
+								onclick={() => (panelOpen = !panelOpen)}
+							>
+								{#if panelOpen}
+									<PanelRightClose size={22} aria-hidden="true" />
+								{:else}
+									<PanelRightOpen size={22} aria-hidden="true" />
+								{/if}
+							</RoundButton>
+						{/snippet}
+					</Tooltip>
+				{/if}
+				<CameraControls small={viewport === 'phone'} />
+			</div>
+
 			{#if viewport !== 'phone'}
-				<button
-					type="button"
-					aria-expanded={panelOpen}
-					aria-controls={sidePanelId}
-					aria-label={panelOpen ? lab.panelHide : lab.panelShow}
-					onclick={() => (panelOpen = !panelOpen)}
-					class="grid size-11 place-items-center rounded-full border-[1.5px] border-ink/15 bg-surface text-ink shadow-md hover:bg-surface-2"
+				<aside
+					id={sidePanelId}
+					aria-label={lab.panelTitle}
+					class="lab-panel paper pointer-events-auto flex flex-col gap-3 self-stretch overflow-y-auto p-3 {panelOpen
+						? ''
+						: 'hidden'}"
 				>
-					{#if panelOpen}
-						<PanelRightClose size={22} aria-hidden="true" />
-					{:else}
-						<PanelRightOpen size={22} aria-hidden="true" />
-					{/if}
-				</button>
+					{@render scenarioPicker()}
+					{@render panelTabsView()}
+				</aside>
 			{/if}
-			<CameraControls />
 		</div>
+
+		<section
+			id={timeSectionId}
+			tabindex="-1"
+			aria-label={lab.timeRegion}
+			class="lab-time pointer-events-auto focus-visible:outline-offset-4"
+		>
+			<TimeControls stacked={viewport === 'phone'} />
+		</section>
+
+		{#if tableOpen}
+			<section
+				id={tableId}
+				aria-labelledby="judul-tabel"
+				class="lab-table paper pointer-events-auto z-20 min-h-0 overflow-auto p-4"
+			>
+				<div class="mb-3 flex items-start justify-between gap-2">
+					<h2 id="judul-tabel" class="text-lg">{lab.tableToggle}</h2>
+					<Button variant="ghost" size="sm" onclick={() => (tableOpen = false)}>
+						{#snippet icon()}<X size={18} />{/snippet}
+						{lab.closeTable}
+					</Button>
+				</div>
+				<RiverTableView />
+			</section>
+		{/if}
 	</div>
 
 	{#if desktop && session.selection !== null}
 		<div
-			class="absolute top-28 left-[calc(50%+8rem)] z-20 max-h-[calc(100%-18rem)] w-[min(22rem,calc(50%-9rem))] min-w-72 overflow-y-auto shadow-lg"
+			bind:this={floating}
+			class="absolute top-0 left-0 z-20 flex w-72 flex-col drop-shadow-lg {floatPlaced
+				? ''
+				: 'opacity-0'}"
 		>
 			{#key `${session.selection.segment}-${session.selection.column}`}
 				<TileActionPanel cell={session.selection} inline={true} onclose={closePanel} />
 			{/key}
 		</div>
 	{/if}
-
-	<div
-		class="pointer-events-none absolute inset-x-2 bottom-2 flex flex-col gap-2 md:flex-row md:items-end"
-	>
-		{#if desktop}
-			{@render stageSectionView()}
-		{/if}
-
-		<section
-			aria-labelledby="judul-hotbar"
-			class="pointer-events-auto min-w-0 flex-1 rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface/95 p-2 shadow-md"
-		>
-			<h2 id="judul-hotbar" class="sr-only">{lab.paletteTitle}</h2>
-			<Toolbox compact={!desktop} />
-		</section>
-
-		<section
-			id={timeSectionId}
-			tabindex="-1"
-			aria-label={lab.timeRegion}
-			class="pointer-events-auto shrink-0 focus-visible:outline-offset-4 max-md:order-first md:w-[22rem]"
-		>
-			<TimeControls stacked={viewport === 'phone'} />
-		</section>
-	</div>
 </div>
 
 {#if !desktop && session.selection !== null}
@@ -554,3 +624,95 @@
 </Dialog>
 
 <EventDialog />
+
+<style>
+	.lab-grid {
+		display: grid;
+		gap: 0.5rem;
+		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+		grid-template-areas:
+			'hud hud'
+			'chips chips'
+			'free time'
+			'free side'
+			'bar bar';
+	}
+
+	.lab-free {
+		grid-area: free;
+	}
+
+	.lab-hud {
+		grid-area: hud;
+	}
+
+	.lab-chips {
+		grid-area: chips;
+	}
+
+	.lab-bar {
+		grid-area: bar;
+	}
+
+	.lab-side {
+		grid-area: side;
+	}
+
+	.lab-panel {
+		width: min(22rem, calc(100vw - 5rem));
+	}
+
+	.lab-time {
+		grid-area: time;
+		align-self: end;
+		justify-self: end;
+	}
+
+	.lab-table {
+		grid-area: free;
+		grid-column: 1 / -1;
+		justify-self: center;
+		width: min(46rem, 100%);
+	}
+
+	@media (min-width: 640px) {
+		.lab-grid {
+			grid-template-columns: minmax(0, 1fr) auto;
+			grid-template-rows: auto auto minmax(0, 1fr) auto;
+			grid-template-areas:
+				'hud hud'
+				'chips chips'
+				'free side'
+				'bar time';
+		}
+
+		.lab-time {
+			justify-self: stretch;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.lab-grid {
+			grid-template-columns: auto minmax(0, 1fr) auto;
+			grid-template-rows: auto minmax(0, 1fr) auto;
+			grid-template-areas:
+				'hud hud hud'
+				'map free side'
+				'map bar time';
+		}
+
+		.lab-free {
+			grid-row: 2 / 4;
+		}
+
+		.lab-hud {
+			justify-self: start;
+		}
+
+		.lab-map {
+			grid-area: map;
+			align-self: end;
+		}
+	}
+</style>

@@ -46,7 +46,7 @@
 	class={compact ? 'grid grid-cols-[1.25rem_1fr] items-center gap-1' : 'flex flex-col gap-1'}
 >
 	{#if compact}
-		<span aria-hidden="true" class="text-center text-sm font-semibold text-ink-muted">{index}</span>
+		<span aria-hidden="true" class="text-center text-sm font-bold">{index}</span>
 		<span id={labelId} class="sr-only">{segmentLabel(index)}</span>
 	{:else}
 		<span id={labelId} class="text-sm font-medium">{segmentLabel(index)}</span>
