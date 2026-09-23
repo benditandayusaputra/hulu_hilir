@@ -310,6 +310,48 @@ test.describe('Lab: layar penuh dan antarmuka tersembunyi', () => {
 		await expect(hud(page)).not.toContainText('(bulan 0)');
 	});
 
+	test('tiap panel punya tombol sembunyikan sendiri yang terpisah dari Sembunyikan antarmuka', async ({
+		page
+	}) => {
+		await gotoReady(page, '/lab/desa');
+		const panels = [
+			{ name: 'indikator', content: page.getByRole('meter', { name: 'Kualitas Air' }) },
+			{ name: 'Peta Petak', content: cell(page, 1, 1) },
+			{ name: 'palet alat', content: page.getByRole('radio', { name: 'Hutan', exact: true }) },
+			{ name: 'kontrol waktu', content: page.getByRole('button', { name: 'Maju 1 bulan' }) }
+		];
+		for (const panel of panels) {
+			const hide = page.getByRole('button', { name: `Sembunyikan ${panel.name}` });
+			await expect(hide).toHaveAttribute('aria-expanded', 'true');
+			await hide.focus();
+			await page.keyboard.press('Enter');
+			const show = page.getByRole('button', { name: `Tampilkan ${panel.name}` });
+			await expect(show).toBeFocused();
+			await expect(show).toHaveAttribute('aria-expanded', 'false');
+			await expect(panel.content).toBeHidden();
+		}
+		await expect(hud(page)).toBeVisible();
+		await expect(page.getByRole('heading', { level: 1, name: 'Lab Bebas' })).toBeVisible();
+
+		await page.getByRole('button', { name: 'Sembunyikan antarmuka' }).click();
+		await expect(page.locator('.lab-grid')).toBeHidden();
+		await page.getByRole('button', { name: 'Tampilkan antarmuka' }).click();
+		await expect(page.locator('.lab-grid')).toBeVisible();
+		for (const panel of panels) {
+			await expect(page.getByRole('button', { name: `Tampilkan ${panel.name}` })).toBeVisible();
+			await expect(panel.content).toBeHidden();
+		}
+
+		for (const panel of panels) {
+			await page.getByRole('button', { name: `Tampilkan ${panel.name}` }).click();
+			await expect(panel.content).toBeVisible();
+			await expect(page.getByRole('button', { name: `Sembunyikan ${panel.name}` })).toHaveAttribute(
+				'aria-expanded',
+				'true'
+			);
+		}
+	});
+
 	test('tombol layar penuh mengikuti Fullscreen API', async ({ page, browserName }) => {
 		test.skip(browserName !== 'chromium', 'Layar penuh diuji di Chromium saja');
 		await gotoReady(page, '/lab/desa');

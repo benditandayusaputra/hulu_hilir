@@ -109,3 +109,17 @@ for (const scheme of ['light', 'dark'] as const) {
 		expect(results.violations).toEqual([]);
 	});
 }
+
+for (const scheme of ['light', 'dark'] as const) {
+	test(`axe nol pelanggaran saat semua panel Lab dilipat di tema ${scheme}`, async ({ page }) => {
+		await page.emulateMedia({ colorScheme: scheme });
+		await gotoReady(page, '/lab/desa');
+		for (const name of ['indikator', 'Peta Petak', 'palet alat', 'kontrol waktu']) {
+			await page.getByRole('button', { name: `Sembunyikan ${name}` }).click();
+		}
+		await expect(page.getByRole('button', { name: 'Tampilkan kontrol waktu' })).toBeVisible();
+		await settleAnimations(page);
+		const results = await new AxeBuilder({ page }).analyze();
+		expect(results.violations).toEqual([]);
+	});
+}

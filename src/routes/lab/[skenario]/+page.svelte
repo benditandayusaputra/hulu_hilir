@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { autoUpdate, computePosition, flip, offset, shift, size } from '@floating-ui/dom';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import Eye from '@lucide/svelte/icons/eye';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import Grid3x3 from '@lucide/svelte/icons/grid-3x3';
@@ -101,6 +103,14 @@
 	let focusedCell = $state<CellRef | null>(null);
 	let stageFocused = $state(false);
 	let restartOpen = $state(false);
+	type PanelKey = keyof typeof lab.panelNames;
+	type TooltipSide = 'top' | 'bottom' | 'left';
+	const collapsed = $state<Record<PanelKey, boolean>>({
+		hud: false,
+		map: false,
+		bar: false,
+		time: false
+	});
 	let showUiButton = $state<HTMLButtonElement | null>(null);
 	let hideUiButton = $state<HTMLButtonElement | null>(null);
 	let focusBeforeHide: HTMLElement | null = null;
@@ -121,6 +131,9 @@
 	let desktopMatch = $state(true);
 	const viewport = $derived(viewportOf(phoneMatch, desktopMatch));
 	const desktop = $derived(viewport === 'desktop');
+	const hudSide = $derived<TooltipSide>(
+		viewport === 'tablet' && !collapsed.hud ? 'left' : 'bottom'
+	);
 	const panelTabs = [
 		{ id: 'narrator', label: narration.tabNarrator },
 		{ id: 'inspector', label: lab.tabInspector },
@@ -477,6 +490,29 @@
 	</Tabs>
 {/snippet}
 
+{#snippet panelToggle(key: PanelKey, foldsUp: boolean, side: TooltipSide)}
+	{@const name = lab.panelNames[key]}
+	{@const label = collapsed[key] ? lab.expandPanel(name) : lab.collapsePanel(name)}
+	<Tooltip text={label} {side}>
+		{#snippet children(describedBy)}
+			<RoundButton
+				{label}
+				small
+				aria-expanded={!collapsed[key]}
+				aria-controls="panel-{key}"
+				aria-describedby={describedBy}
+				onclick={() => (collapsed[key] = !collapsed[key])}
+			>
+				{#if collapsed[key] === foldsUp}
+					<ChevronDown size={20} aria-hidden="true" />
+				{:else}
+					<ChevronUp size={20} aria-hidden="true" />
+				{/if}
+			</RoundButton>
+		{/snippet}
+	</Tooltip>
+{/snippet}
+
 {#snippet stageSectionView()}
 	<section
 		id={stageSectionId}
@@ -486,13 +522,21 @@
 		onfocusin={() => (stageFocused = true)}
 		onfocusout={() => (stageFocused = false)}
 		class="pointer-events-auto focus-visible:outline-offset-4 {desktop
-			? 'lab-map wood wood-nails flex flex-col gap-1.5 px-3 pt-2 pb-3'
+			? 'lab-map wood wood-nails relative flex flex-col gap-1.5 px-3 pt-2 pb-3'
 			: 'flex flex-wrap gap-2'}"
 	>
-		<h2 id="judul-peta-petak" class={desktop ? 'px-1 text-base' : 'sr-only'}>{lab.tileMap}</h2>
 		{#if desktop}
-			{@render stageMap(true)}
+			<h2 id="judul-peta-petak" class="flex min-h-11 items-center px-1 pe-14 text-base">
+				{lab.tileMap}
+			</h2>
+			<div id="panel-map" hidden={collapsed.map}>
+				{@render stageMap(true)}
+			</div>
+			<div class="absolute top-2 right-3">
+				{@render panelToggle('map', false, 'top')}
+			</div>
 		{:else}
+			<h2 id="judul-peta-petak" class="sr-only">{lab.tileMap}</h2>
 			<button
 				type="button"
 				bind:this={mapButton}
@@ -552,34 +596,39 @@
 
 		<section
 			aria-labelledby="judul-lab"
-			class="lab-hud wood wood-nails pointer-events-auto flex min-w-0 flex-wrap items-center gap-x-6 gap-y-1.5 px-4 py-2 sm:px-5"
+			class="lab-hud wood wood-nails pointer-events-auto flex min-w-0 flex-wrap items-center gap-x-6 gap-y-1.5 px-4 py-2 sm:px-5 {collapsed.hud
+				? 'justify-self-start'
+				: ''}"
 		>
-			<h1 id="judul-lab" class="text-xl max-xl:sr-only">{lab.title}</h1>
-			<h2 class="sr-only">{lab.indicatorsTitle}</h2>
-			<div class="min-w-0 flex-1 max-sm:basis-full">
-				<IndicatorPanel />
+			<h1 id="judul-lab" class="text-xl {collapsed.hud ? '' : 'max-xl:sr-only'}">{lab.title}</h1>
+			<div id="panel-hud" class="contents" hidden={collapsed.hud}>
+				<h2 class="sr-only">{lab.indicatorsTitle}</h2>
+				<div class="min-w-0 flex-1 max-sm:basis-full">
+					<IndicatorPanel />
+				</div>
+				{#if weatherText !== '' || session.enforcementActive}
+					<p
+						class="flex flex-wrap gap-1 text-sm text-shadow-none max-lg:order-last max-lg:basis-full"
+					>
+						{#if weatherText !== ''}
+							<span class="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5 text-ink"
+								>{weatherText}</span
+							>
+						{/if}
+						{#if session.enforcementActive}
+							<span class="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5 text-ink">
+								{lab.enforcementActive}
+							</span>
+						{/if}
+					</p>
+				{/if}
+				{#if desktop}
+					{@render tableToggle()}
+				{/if}
 			</div>
-			{#if weatherText !== '' || session.enforcementActive}
-				<p
-					class="flex flex-wrap gap-1 text-sm text-shadow-none max-lg:order-last max-lg:basis-full"
-				>
-					{#if weatherText !== ''}
-						<span class="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5 text-ink"
-							>{weatherText}</span
-						>
-					{/if}
-					{#if session.enforcementActive}
-						<span class="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5 text-ink">
-							{lab.enforcementActive}
-						</span>
-					{/if}
-				</p>
-			{/if}
-			{#if desktop}
-				{@render tableToggle()}
-			{/if}
-			<div class="ms-auto flex items-center gap-2 sm:max-lg:flex-col">
-				<Tooltip text="{lab.hideUi}, {lab.shortcut}: H" side="left">
+			<div class="ms-auto flex items-center gap-2 {collapsed.hud ? '' : 'sm:max-lg:flex-col'}">
+				{@render panelToggle('hud', true, hudSide)}
+				<Tooltip text="{lab.hideUi}, {lab.shortcut}: H" side={hudSide}>
 					{#snippet children(describedBy)}
 						<RoundButton
 							bind:element={hideUiButton}
@@ -593,7 +642,7 @@
 					{/snippet}
 				</Tooltip>
 				{#if canFullscreen}
-					<Tooltip text={fullscreen ? lab.exitFullscreen : lab.fullscreen} side="left">
+					<Tooltip text={fullscreen ? lab.exitFullscreen : lab.fullscreen} side={hudSide}>
 						{#snippet children(describedBy)}
 							<RoundButton
 								label={fullscreen ? lab.exitFullscreen : lab.fullscreen}
@@ -625,10 +674,17 @@
 
 		<section
 			aria-labelledby="judul-hotbar"
-			class="lab-bar wood pointer-events-auto min-w-0 px-2 pt-2 pb-1 sm:px-3"
+			class="lab-bar wood pointer-events-auto flex min-w-0 gap-2 px-2 pt-2 sm:px-3 {collapsed.bar
+				? 'items-center justify-self-start pb-2'
+				: 'items-start pb-1'}"
 		>
-			<h2 id="judul-hotbar" class="sr-only">{lab.paletteTitle}</h2>
-			<Toolbox compact={!desktop} />
+			<h2 id="judul-hotbar" class={collapsed.bar ? 'px-1 text-base' : 'sr-only'}>
+				{lab.paletteTitle}
+			</h2>
+			<div id="panel-bar" class="min-w-0 flex-1" hidden={collapsed.bar}>
+				<Toolbox compact={!desktop} />
+			</div>
+			{@render panelToggle('bar', false, 'top')}
 		</section>
 
 		<div class="lab-side flex min-h-0 items-center justify-end gap-2">
@@ -673,9 +729,20 @@
 			id={timeSectionId}
 			tabindex="-1"
 			aria-label={lab.timeRegion}
-			class="lab-time pointer-events-auto focus-visible:outline-offset-4"
+			class="lab-time pointer-events-auto flex items-center gap-2 focus-visible:outline-offset-4 {viewport ===
+			'phone'
+				? 'flex-col'
+				: ''} {collapsed.time && viewport !== 'phone'
+				? 'lab-time-folded wood wood-nails px-4 py-2'
+				: ''}"
 		>
-			<TimeControls stacked={viewport === 'phone'} />
+			<div id="panel-time" hidden={collapsed.time}>
+				<TimeControls stacked={viewport === 'phone'} />
+			</div>
+			{#if collapsed.time && viewport !== 'phone'}
+				<p class="font-display text-base font-bold">{lab.timeRegion}</p>
+			{/if}
+			{@render panelToggle('time', false, viewport === 'phone' ? 'left' : 'top')}
 		</section>
 
 		{#if tableOpen}
@@ -843,7 +910,7 @@
 				'bar time';
 		}
 
-		.lab-time {
+		.lab-time:not(.lab-time-folded) {
 			justify-self: stretch;
 		}
 	}

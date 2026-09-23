@@ -281,6 +281,14 @@ export const lab = {
 	hideUi: 'Sembunyikan antarmuka',
 	showUi: 'Tampilkan antarmuka',
 	uiHidden: 'Antarmuka disembunyikan. Tekan H untuk menampilkan lagi.',
+	collapsePanel: (panel: string) => `Sembunyikan ${panel}`,
+	expandPanel: (panel: string) => `Tampilkan ${panel}`,
+	panelNames: {
+		hud: 'indikator',
+		map: 'Peta Petak',
+		bar: 'palet alat',
+		time: 'kontrol waktu'
+	},
 	fullscreen: 'Layar penuh',
 	exitFullscreen: 'Keluar dari layar penuh',
 	cancel: 'Batal',
