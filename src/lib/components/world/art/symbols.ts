@@ -103,6 +103,17 @@ export const city = symbol('city', 480, 230);
 export const beach = symbol('beach', 420, 170);
 export const sea = symbol('sea', 480, 170);
 
+export const props = {
+	ipal: symbol('prop-ipal', 64, 56),
+	bins: symbol('prop-bins', 70, 42),
+	biopori: symbol('prop-biopori', 64, 30),
+	eco: symbol('prop-eco', 40, 56),
+	relocation: symbol('prop-relocation', 64, 44),
+	shrub: symbol('prop-shrub', 46, 34),
+	sapling: symbol('prop-sapling', 36, 58),
+	palm: symbol('prop-palm', 90, 120)
+} as const;
+
 export const riverPieces: Record<WaterStatus, WorldSymbol> = {
 	good: symbol('river-good', 260, 170),
 	light: symbol('river-light', 260, 170),

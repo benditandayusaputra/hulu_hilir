@@ -10,6 +10,7 @@
 	import OpenLand from './OpenLand.svelte';
 	import Paddy from './Paddy.svelte';
 	import Plot from './Plot.svelte';
+	import Props from './Props.svelte';
 	import RetentionPond from './RetentionPond.svelte';
 	import RiverPiece from './RiverPiece.svelte';
 	import Settlement from './Settlement.svelte';
@@ -54,5 +55,6 @@
 		<Floodgate />
 		<Signboard />
 		<Backdrop />
+		<Props />
 	</defs>
 </svg>
