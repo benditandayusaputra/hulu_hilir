@@ -10,9 +10,11 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Trees from '@lucide/svelte/icons/trees';
 	import Waves from '@lucide/svelte/icons/waves';
+	import NewsSheet from '$lib/components/hud/art/NewsSheet.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import { timeLabel } from '$lib/content/lab';
+	import { ui } from '$lib/content/ui';
 	import { eventNewsOf, eventResponses, narration } from '$lib/content/narration';
 	import { formatBillions } from '$lib/format/number';
 	import type { EventType } from '$lib/sim';
@@ -71,24 +73,35 @@
 	bind:open
 	title={news?.title ?? ''}
 	description={event === null ? '' : `${narration.kabarKali}, ${dateText}`}
+	skin="table"
 >
-	{#snippet footer()}
-		{#each responses as response (response.label)}
-			<Button
-				variant={response.action === null ? 'secondary' : 'primary'}
-				onclick={() => session.respondToEvent(response.action)}
-			>
-				{responseLabel(response.label, response.action)}
-			</Button>
-		{/each}
-		{#if responses.length === 0}
-			<Button onclick={() => session.respondToEvent(null)}>{narration.continueLabel}</Button>
-		{/if}
+	{#snippet content({ titleId, descriptionId, close })}
+		<div class="mb-2 flex justify-end">
+			<Button variant="secondary" size="sm" onclick={close}>{ui.close}</Button>
+		</div>
+		<NewsSheet masthead={narration.kabarKali} edition={dateText} {descriptionId}>
+			<h2 id={titleId} tabindex="-1" class="focus-visible:outline-offset-4">
+				{news?.title ?? ''}
+			</h2>
+			<div class="flex items-start gap-4">
+				{#if Icon !== null}
+					<Icon size={48} aria-hidden="true" class="shrink-0" />
+				{/if}
+				<p class="news-columns">{news?.body ?? ''}</p>
+			</div>
+			<div class="mt-5 flex flex-wrap justify-end gap-2">
+				{#each responses as response (response.label)}
+					<Button
+						variant={response.action === null ? 'secondary' : 'primary'}
+						onclick={() => session.respondToEvent(response.action)}
+					>
+						{responseLabel(response.label, response.action)}
+					</Button>
+				{/each}
+				{#if responses.length === 0}
+					<Button onclick={() => session.respondToEvent(null)}>{narration.continueLabel}</Button>
+				{/if}
+			</div>
+		</NewsSheet>
 	{/snippet}
-	<div class="flex items-start gap-4">
-		{#if Icon !== null}
-			<Icon size={48} aria-hidden="true" class="shrink-0 text-accent" />
-		{/if}
-		<p>{news?.body ?? ''}</p>
-	</div>
 </Dialog>
