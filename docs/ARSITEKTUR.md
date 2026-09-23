@@ -55,9 +55,36 @@ Nama petak dan sel air dirangkai oleh `content/lab.ts` mengikuti pola bagian 9.3
 
 ## Tata letak responsif
 
-Lab memakai mode `immersive` di `AppShell`: dunia memenuhi layar di antara header dan footer ringkas, dan halaman tidak pernah bergulir. Di atasnya mengambang HUD indikator, hotbar alat di bawah yang bergulir di dalam wadahnya sendiri, kontrol waktu di kanan bawah, kontrol kamera di kanan tengah, dan panel samping bertab (Narator, Inspektor, Riwayat). Lebar layar dibaca lewat dua `matchMedia` karena wujud DOM berganti: panel samping terbuka di desktop, menjadi laci di tablet, dan menjadi `Sheet` di ponsel. Panel aksi petak mengambang di samping lahan terpilih pada desktop dan menjadi `Sheet` di lebar lain.
+Lab memakai mode `immersive` di `AppShell`: dunia memenuhi layar di antara header dan footer ringkas, dan halaman tidak pernah bergulir. Lapisan HUD di atas dunia adalah satu grid CSS dengan area bernama, sehingga tidak ada elemen yang saling tindih ketika tinggi layar berubah:
+
+| Lebar           | Area grid                                                                                 |
+| --------------- | ----------------------------------------------------------------------------------------- |
+| di bawah 640    | `hud`, `chips` (Peta Petak, Panel, Tabel), `free` dan kolom kanan (`time`, `side`), `bar` |
+| 640 sampai 1023 | `hud`, `chips`, `free` dan `side` (tombol kamera serta laci panel), `bar` dan `time`      |
+| 1024 ke atas    | `hud`, lalu `map` yang merentang dua baris di kiri, `free` dan `side`, `bar` dan `time`   |
+
+Kolom `side` berisi tombol kamera dan panel samping dalam satu wadah flex, sehingga saat panel dilipat tombol kamera tetap menempel di tepi kanan. Kontrol waktu berada di kolom yang sama, jadi lebarnya mengikuti panel. Lebar layar dibaca lewat dua `matchMedia` karena wujud DOM berganti: panel samping terbuka di desktop, menjadi laci di tablet, dan menjadi `Sheet` di ponsel. Di ponsel footer disembunyikan dan tombol Pengaturan serta Bantuan hanya memperlihatkan ikon, dengan teks tersembunyi sebagai nama.
+
+Panel aksi petak di desktop diposisikan dengan `@floating-ui/dom`. Rujukannya adalah elemen virtual yang titiknya dihitung dari pusat lahan (atau jangkar segmen untuk sel air) lewat `worldToScreen`, dan batasnya elemen kosong `lab-free` yang menutupi baris tengah dan baris hotbar di kolom tengah. Panel boleh menutupi hotbar karena ia popover sementara, tetapi tidak pernah menutupi HUD, Peta Petak, atau panel samping. `autoUpdate` menangani perubahan ukuran panel, sedangkan satu `$effect` terpisah memanggil ulang posisi setiap kali state `WorldCamera` berubah, supaya panel ikut bergeser saat kamera terbang tanpa memasang ulang observer tiap bingkai. Bacaan state kamera di dalam rujukan dibungkus `untrack`. Di lebar lain panel aksi menjadi `Sheet`.
+
+Guliran panel aksi ada di elemen `section` luarnya, bukan di badan kertas. Firefox memasukkan wadah gulir ke urutan Tab, dan wadah yang berada setelah judul akan menyela urutan judul, pilihan aksi, lalu tombol Pasang.
 
 Tabel ringkasan sungai dipecah menjadi dua tabel lima kolom dan tidak ada wilayah gulir horizontal, karena wilayah gulir membutuhkan `tabindex="0"` yang ditolak compiler Svelte untuk elemen non-interaktif.
+
+## Kulit game
+
+Kulit kayu, kertas, dan tombol bundar tinggal di `src/app.css` sebagai kelas bersama `.wood`, `.wood-nails`, `.paper`, `.plank-title`, `.knob`, `.knob-sm`, dan `.knob-on`. Komponen di `src/lib/components/hud/art` hanya pembungkus tipis, sehingga `<dialog>`, `<section>`, dan `<header>` bisa memakai kulit yang sama tanpa elemen tambahan.
+
+Aturan warnanya: teks yang langsung berada di atas kayu hanya krem `--color-plank-ink` dengan garis tepi `--plank-outline`, dan semua komponen generik (Button, Tabs, chip) duduk di atas kertas. Karena itu `.wood` dan `.paper` sama-sama memetakan ulang `--color-surface` dan `--color-surface-2` ke warna kertas, sehingga tombol sekunder di atas kayu tampil sebagai secarik kertas dan tidak ada teks gelap yang mendarat di kayu. Koran Kabar Kali memetakan `--color-ink` dan `--color-surface` ke tinta dan kertas koran.
+
+Kontras dikunci oleh `src/lib/color/tokens.test.ts`, yang membaca nilai `light-dark()` langsung dari `app.css` dan menghitung rasio setiap pasangan di `src/lib/color/pairs.ts` pada tema terang dan gelap. Galeri `/dev/galeri` memakai daftar pasangan yang sama tetapi mengukur warna yang benar-benar dirender browser.
+
+Beberapa keputusan kecil:
+
+- `Dialog` punya kulit `paper` (bawaan) dan `table` (meja kayu), serta slot `content` yang menerima `titleId`, `descriptionId`, dan `close`. Kabar Kali memakai slot itu supaya judul berita berada di dalam koran setelah kepala surat kabar. Kepala surat kabar adalah satu paragraf deskripsi dengan pemisah koma tersembunyi, sehingga deskripsi dialog tetap terbaca "Kabar Kali, Tahun 1, Februari (bulan 2)".
+- Slot hotbar adalah radio native yang menutupi label bergaya slot. Slot memperlihatkan nama pendek (`actionShortNames`) yang selalu bagian dari nama lengkap, sedangkan nama lengkap menjadi nama radio, sesuai syarat label dalam nama. Alasan tidak tersedia tampil sebagai tag "Kas kurang", dan kalimat lengkapnya ada di deskripsi radio.
+- Bulan dan musim pindah dari kontrol waktu ke HUD atas sesuai 8.9. Kontrol waktu hanya berisi tombol bundar.
+- Angka Kas dihitung naik atau turun dengan `requestAnimationFrame` selama 600 ms. Angka yang bergerak `aria-hidden`, dan nilai akhir tersedia sebagai teks tersembunyi. Saat gerak dikurangi, angka langsung berganti, dan slot terpilih tidak terangkat maupun memantul.
 
 ## Narator dan kejadian
 
