@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { gotoReady, settleAnimations } from '../ready';
 
-const routes = ['/', '/lab'];
+const routes = ['/', '/lab', '/dev/galeri'];
 
 for (const route of routes) {
 	test(`axe nol pelanggaran di ${route}`, async ({ page }) => {
