@@ -2,7 +2,7 @@
 @import '@fontsource-variable/plus-jakarta-sans/wght.css';
 @import 'tailwindcss';
 
-@theme {
+@theme static {
 	--font-display: 'Fraunces Variable', Georgia, serif;
 	--font-sans: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
 
