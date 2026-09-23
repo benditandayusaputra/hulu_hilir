@@ -26,3 +26,6 @@ playwright-report
 test-results
 coverage
 .vitest
+
+docs/referensi
+.tangkapan
