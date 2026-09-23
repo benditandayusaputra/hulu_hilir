@@ -1,70 +1,123 @@
 <script lang="ts">
 	import Lock from '@lucide/svelte/icons/lock';
 	import type { Snippet } from 'svelte';
-	import type { HTMLButtonAttributes } from 'svelte/elements';
 	import Coin from './Coin.svelte';
 
-	interface Props extends Omit<HTMLButtonAttributes, 'children'> {
+	interface Props {
+		id: string;
+		name: string;
+		value: string;
+		checked: boolean;
 		label: string;
+		shortLabel?: string;
 		cost: string;
 		icon: Snippet;
-		selected?: boolean;
-		available?: boolean;
+		reason?: string;
+		describedBy?: string;
+		compact?: boolean;
+		onchange: () => void;
 	}
 
-	let { label, cost, icon, selected = false, available = true, ...rest }: Props = $props();
+	let {
+		id,
+		name,
+		value,
+		checked,
+		label,
+		shortLabel = label,
+		cost,
+		icon,
+		reason = '',
+		describedBy,
+		compact = false,
+		onchange
+	}: Props = $props();
 </script>
 
-<button
-	type="button"
-	class="hotbar-slot"
-	aria-pressed={selected}
-	aria-disabled={!available}
-	data-selected={selected || undefined}
-	data-unavailable={!available || undefined}
-	{...rest}
->
-	<span class="slot-well">
-		{@render icon()}
-		{#if !available}
-			<span class="slot-lock"><Lock size={14} aria-hidden="true" /></span>
+<div class="slot" class:compact>
+	<input
+		{id}
+		type="radio"
+		{name}
+		{value}
+		{checked}
+		{onchange}
+		aria-describedby={describedBy}
+		class="slot-input"
+	/>
+	<label for={id} class="hotbar-slot" data-unavailable={reason === '' ? undefined : ''}>
+		<span class="slot-well">
+			{@render icon()}
+			{#if reason !== ''}
+				<span class="slot-lock"><Lock size={14} aria-hidden="true" /></span>
+			{/if}
+		</span>
+		<span class="slot-label">
+			{#if shortLabel === label}
+				{label}
+			{:else}
+				<span aria-hidden="true">{shortLabel}</span><span class="sr-only">{label}</span>
+			{/if}
+		</span>
+		<span class="slot-cost" aria-hidden="true" data-numeric><Coin size={16} />{cost}</span>
+		{#if reason !== ''}
+			<span class="slot-reason" aria-hidden="true">{reason}</span>
 		{/if}
-	</span>
-	<span class="slot-label">{label}</span>
-	<span class="slot-cost" data-numeric><Coin size={16} />{cost}</span>
-</button>
+	</label>
+</div>
 
 <style>
+	.slot {
+		position: relative;
+		display: flex;
+		flex-shrink: 0;
+	}
+
+	.slot-input {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		width: 100%;
+		height: 100%;
+		margin: 0;
+		appearance: none;
+		cursor: pointer;
+		border-radius: 12px;
+	}
+
 	.hotbar-slot {
-		display: inline-flex;
+		position: relative;
+		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: 0.25rem;
-		min-width: 5.75rem;
+		width: 6.25rem;
 		min-height: 44px;
-		padding: 0.5rem 0.5rem 0.4rem;
+		padding: 0.5rem 0.25rem 0.4rem;
 		color: var(--color-plank-ink);
-		font-size: 0.875rem;
+		font-size: var(--text-sm);
 		font-weight: 700;
 		line-height: 1.2;
-		text-shadow:
-			0 1px 0 var(--color-outline),
-			0 -1px 0 var(--color-outline),
-			1px 0 0 var(--color-outline),
-			-1px 0 0 var(--color-outline);
+		text-align: center;
+		text-shadow: var(--plank-outline);
+		pointer-events: none;
 		background: linear-gradient(var(--color-wood-light), var(--color-wood));
 		border: 3px solid var(--color-outline);
 		border-radius: 12px 10px 13px 11px;
 		box-shadow:
 			inset 0 2px 0 var(--color-wood-edge),
 			0 4px 0 var(--color-wood-dark);
-		cursor: pointer;
 		transition:
 			transform var(--dur-fast) var(--ease-out),
 			box-shadow var(--dur-fast) var(--ease-out);
 	}
 
-	.hotbar-slot:hover:not([data-unavailable]) {
+	.compact .hotbar-slot {
+		padding-top: 0.375rem;
+		gap: 0.125rem;
+	}
+
+	.slot-input:hover + .hotbar-slot:not([data-unavailable]) {
 		transform: translateY(-2px);
 	}
 
@@ -78,6 +131,17 @@
 		border: 2px solid var(--color-outline);
 		border-radius: 10px;
 		box-shadow: inset 0 3px 0 rgb(0 0 0 / 0.2);
+	}
+
+	.compact .slot-well {
+		width: 2.25rem;
+		height: 2.25rem;
+	}
+
+	.slot-label {
+		display: grid;
+		flex: 1;
+		place-items: center;
 	}
 
 	.slot-cost {
@@ -99,7 +163,21 @@
 		border-radius: 9999px;
 	}
 
-	[data-selected] {
+	.slot-reason {
+		position: absolute;
+		top: -0.625rem;
+		left: 50%;
+		padding: 0 0.375rem;
+		color: var(--color-danger);
+		white-space: nowrap;
+		text-shadow: none;
+		background: var(--color-paper);
+		border: 2px solid var(--color-outline);
+		border-radius: 6px;
+		transform: translateX(-50%) rotate(-3deg);
+	}
+
+	.slot-input:checked + .hotbar-slot {
 		transform: translateY(-6px);
 		box-shadow:
 			inset 0 2px 0 var(--color-wood-edge),
@@ -109,19 +187,18 @@
 		animation: slot-bounce var(--dur-slow) var(--ease-out);
 	}
 
-	[data-selected]:hover {
-		transform: translateY(-6px);
-	}
-
 	[data-unavailable] {
 		background: var(--color-wood-dark);
-		box-shadow: 0 4px 0 var(--color-wood-dark);
-		cursor: not-allowed;
 	}
 
 	[data-unavailable] .slot-well > :global(svg:first-child) {
 		opacity: 0.55;
 		filter: grayscale(1);
+	}
+
+	:global(:root[data-motion='reduced']) .slot-input:checked + .hotbar-slot {
+		transform: none;
+		animation: none;
 	}
 
 	@keyframes slot-bounce {

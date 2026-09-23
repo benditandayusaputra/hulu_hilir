@@ -23,3 +23,9 @@ export function contrastRatio(first: Rgb, second: Rgb): number {
 	const [light, dark] = [luminance(first), luminance(second)].sort((a, b) => b - a);
 	return ((light ?? 0) + flare) / ((dark ?? 0) + flare);
 }
+
+export function parseHex(hex: string): Rgb | null {
+	const match = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(hex.trim());
+	if (!match) return null;
+	return [parseInt(match[1] ?? '', 16), parseInt(match[2] ?? '', 16), parseInt(match[3] ?? '', 16)];
+}

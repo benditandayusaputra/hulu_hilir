@@ -1,3 +1,4 @@
+import type { ContrastPairId } from '$lib/color/pairs';
 import type { FishGroup, Indicators, WaterStatus } from '$lib/sim';
 
 export const gallery = {
@@ -84,6 +85,7 @@ export const gallery = {
 		] satisfies { kind: keyof Indicators; value: number }[]
 	},
 	hotbarHeading: 'Hotbar alat',
+	slotReason: 'Kas kurang',
 	slots: {
 		normal: { label: 'Tanam Hutan', cost: '6' },
 		selected: { label: 'IPAL Industri', cost: '12' },
@@ -123,16 +125,24 @@ export const gallery = {
 		inkBg: 'Teks utama di latar halaman',
 		mutedBg: 'Teks sekunder di latar halaman',
 		inkSurface: 'Teks di permukaan panel',
+		inkSurface2: 'Teks di chip permukaan sekunder',
 		inkPaper: 'Teks di kartu kertas',
 		mutedPaper: 'Teks sekunder di kertas',
 		inkPaper2: 'Teks di area sekunder kertas',
+		mutedPaper2: 'Teks sekunder di area sekunder kertas, tab tidak aktif',
 		linkPaper: 'Tautan di kertas',
 		onPrimary: 'Teks tombol utama',
 		accentPaper: 'Teks beraksen di kertas',
 		dangerPaper: 'Teks galat di kertas',
 		plankLight: 'Teks krem di serat kayu paling terang',
+		plankWood: 'Teks krem di kayu',
 		plankDark: 'Teks krem di kayu slot tidak tersedia',
+		plankGrain: 'Teks krem di urat kayu',
+		knobLight: 'Label tombol bundar di bagian terang',
+		knob: 'Label tombol bundar di bagian gelap',
+		knobOn: 'Label tombol bundar yang aktif',
 		news: 'Teks koran Kabar Kali',
+		tooltip: 'Teks tooltip',
 		stamp: 'Cap bintang di kertas, grafis'
-	}
+	} satisfies Record<ContrastPairId, string>
 } as const;

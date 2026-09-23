@@ -7,6 +7,7 @@
 	import ZoomIn from '@lucide/svelte/icons/zoom-in';
 	import ZoomOut from '@lucide/svelte/icons/zoom-out';
 	import { contrastRatio, parseRgb } from '$lib/color/contrast';
+	import { contrastPairs } from '$lib/color/pairs';
 	import Coin from '$lib/components/hud/art/Coin.svelte';
 	import HotbarSlot from '$lib/components/hud/art/HotbarSlot.svelte';
 	import NewsSheet from '$lib/components/hud/art/NewsSheet.svelte';
@@ -136,31 +137,9 @@
 
 	const themes = ['light', 'dark'] as const;
 
-	interface Pair {
-		id: keyof typeof gallery.pairs;
-		fg: string;
-		bg: string;
-		target: number;
-	}
-
-	const textTarget = 4.5;
-	const graphicTarget = 3;
-	const pairs: Pair[] = [
-		{ id: 'inkBg', fg: '--color-ink', bg: '--color-bg', target: textTarget },
-		{ id: 'mutedBg', fg: '--color-ink-muted', bg: '--color-bg', target: textTarget },
-		{ id: 'inkSurface', fg: '--color-ink', bg: '--color-surface', target: textTarget },
-		{ id: 'inkPaper', fg: '--color-ink', bg: '--color-paper', target: textTarget },
-		{ id: 'mutedPaper', fg: '--color-ink-muted', bg: '--color-paper', target: textTarget },
-		{ id: 'inkPaper2', fg: '--color-ink', bg: '--color-paper-2', target: textTarget },
-		{ id: 'linkPaper', fg: '--color-primary', bg: '--color-paper', target: textTarget },
-		{ id: 'onPrimary', fg: '--color-on-primary', bg: '--color-primary', target: textTarget },
-		{ id: 'accentPaper', fg: '--color-accent-ink', bg: '--color-paper', target: textTarget },
-		{ id: 'dangerPaper', fg: '--color-danger', bg: '--color-paper', target: textTarget },
-		{ id: 'plankLight', fg: '--color-plank-ink', bg: '--color-wood-light', target: textTarget },
-		{ id: 'plankDark', fg: '--color-plank-ink', bg: '--color-wood-dark', target: textTarget },
-		{ id: 'news', fg: '--color-news-ink', bg: '--color-newsprint', target: textTarget },
-		{ id: 'stamp', fg: '--color-stamp', bg: '--color-paper', target: graphicTarget }
-	];
+	const slotKinds = ['normal', 'selected', 'unavailable'] as const;
+	const slotIcons = { normal: TreePine, selected: Factory, unavailable: Waves };
+	let chosenSlot = $state<(typeof slotKinds)[number]>('selected');
 
 	let ratios = $state<Record<string, number>>({});
 
@@ -300,24 +279,27 @@
 
 				<div>
 					<h4 class="mb-3 text-lg">{gallery.hotbarHeading}</h4>
-					<div class="flex flex-wrap gap-3 pt-2">
-						<HotbarSlot label={gallery.slots.normal.label} cost={gallery.slots.normal.cost}>
-							{#snippet icon()}<TreePine size={24} aria-hidden="true" />{/snippet}
-						</HotbarSlot>
-						<HotbarSlot
-							label={gallery.slots.selected.label}
-							cost={gallery.slots.selected.cost}
-							selected
-						>
-							{#snippet icon()}<Factory size={24} aria-hidden="true" />{/snippet}
-						</HotbarSlot>
-						<HotbarSlot
-							label={gallery.slots.unavailable.label}
-							cost={gallery.slots.unavailable.cost}
-							available={false}
-						>
-							{#snippet icon()}<Waves size={24} aria-hidden="true" />{/snippet}
-						</HotbarSlot>
+					<div
+						role="radiogroup"
+						aria-label={gallery.hotbarHeading}
+						class="flex flex-wrap gap-3 pt-3"
+					>
+						{#each slotKinds as kind (kind)}
+							{@const slot = gallery.slots[kind]}
+							{@const Icon = slotIcons[kind]}
+							<HotbarSlot
+								id="galeri-{theme}-{kind}"
+								name="galeri-{theme}-slot"
+								value={kind}
+								checked={chosenSlot === kind}
+								label={slot.label}
+								cost={slot.cost}
+								reason={kind === 'unavailable' ? gallery.slotReason : ''}
+								onchange={() => (chosenSlot = kind)}
+							>
+								{#snippet icon()}<Icon size={24} aria-hidden="true" />{/snippet}
+							</HotbarSlot>
+						{/each}
 					</div>
 				</div>
 
@@ -384,7 +366,7 @@
 				<div>
 					<h4 class="mb-3 text-lg">{gallery.contrastHeading}</h4>
 					<ul class="flex flex-col gap-2 text-sm">
-						{#each pairs as pair (pair.id)}
+						{#each contrastPairs as pair (pair.id)}
 							<li class="flex flex-wrap items-center gap-x-3 gap-y-1">
 								<span
 									class="inline-grid h-8 w-12 shrink-0 place-items-center rounded-[var(--radius-control)] border-[1.5px] border-ink/10 font-bold"

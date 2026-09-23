@@ -59,6 +59,13 @@
 	--color-news-ink: light-dark(#26231e, #ece5d6);
 	--color-stamp: light-dark(#b8322a, #f28b7e);
 	--color-glow: #ffd84d;
+	--color-knob-light: light-dark(#fffaf0, #efe2c4);
+	--color-knob: light-dark(#f0ddb5, #d9c39a);
+	--color-knob-edge: light-dark(#d8c39c, #bfa679);
+	--color-meter-waterQuality: #5cc4e6;
+	--color-meter-fish: #f2a65a;
+	--color-meter-floodRisk: #e0735a;
+	--color-meter-economy: #f2b632;
 
 	--dur-fast: 150ms;
 	--dur-base: 250ms;
@@ -71,6 +78,9 @@
 @layer base {
 	:root {
 		color-scheme: light dark;
+		--plank-outline:
+			0 1px 0 var(--color-outline), 0 -1px 0 var(--color-outline), 1px 0 0 var(--color-outline),
+			-1px 0 0 var(--color-outline), 0 2px 0 var(--color-outline);
 		scroll-padding-block: calc(var(--spacing) * 24);
 	}
 
@@ -158,6 +168,144 @@
 }
 
 @layer components {
+	.wood {
+		--nail: none;
+		--color-surface: var(--color-paper);
+		--color-surface-2: var(--color-paper-2);
+		position: relative;
+		color: var(--color-plank-ink);
+		border: 3px solid var(--color-outline);
+		border-radius: 14px 10px 13px 9px;
+		background-color: var(--color-wood);
+		background-image:
+			var(--nail), var(--nail), var(--nail), var(--nail),
+			radial-gradient(18px 6px at 76% 64%, var(--color-wood-grain) 0 45%, transparent 75%),
+			radial-gradient(12px 4px at 18% 30%, var(--color-wood-grain) 0 45%, transparent 75%),
+			repeating-linear-gradient(
+				177deg,
+				transparent 0 7px,
+				var(--color-wood-grain) 7px 8.5px,
+				transparent 8.5px 15px,
+				var(--color-wood-light) 15px 17px,
+				transparent 17px 23px
+			),
+			linear-gradient(var(--color-wood-light), var(--color-wood) 45%, var(--color-wood-dark));
+		background-size:
+			12px 12px,
+			12px 12px,
+			12px 12px,
+			12px 12px,
+			auto,
+			auto,
+			auto,
+			auto;
+		background-position:
+			5px 5px,
+			calc(100% - 5px) 5px,
+			5px calc(100% - 5px),
+			calc(100% - 5px) calc(100% - 5px),
+			0 0,
+			0 0,
+			0 0,
+			0 0;
+		background-repeat:
+			no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, no-repeat;
+		box-shadow:
+			inset 0 2px 0 var(--color-wood-edge),
+			inset 0 -3px 0 var(--color-wood-dark),
+			0 4px 0 rgb(59 42 34 / 0.35);
+		text-shadow: var(--plank-outline);
+	}
+
+	.wood-nails {
+		--nail: radial-gradient(
+			circle at 42% 40%,
+			#eef1f2 0 1.2px,
+			#aeb6ba 1.6px 3px,
+			var(--color-outline) 3.2px 4.6px,
+			transparent 5px
+		);
+	}
+
+	.wood :is(h1, h2, h3, h4),
+	.plank-title {
+		font-family: var(--font-display);
+		font-weight: 700;
+		color: var(--color-plank-ink);
+		text-shadow: var(--plank-outline);
+	}
+
+	.wood a:hover {
+		color: inherit;
+		text-decoration: underline;
+	}
+
+	.paper {
+		--color-surface: var(--color-paper);
+		--color-surface-2: var(--color-paper-2);
+		color: var(--color-ink);
+		text-shadow: none;
+		background-color: var(--color-paper);
+		background-image:
+			radial-gradient(
+				circle,
+				color-mix(in oklab, var(--color-paper-edge) 22%, transparent) 0 0.6px,
+				transparent 1px
+			),
+			linear-gradient(
+				to bottom,
+				transparent 70%,
+				color-mix(in oklab, var(--color-paper-edge) 22%, transparent)
+			);
+		background-size:
+			7px 9px,
+			100% 100%;
+		border: 2px solid var(--color-paper-edge);
+		border-radius: 13px 11px 14px 12px;
+		box-shadow:
+			0 3px 0 var(--color-paper-edge),
+			0 10px 20px rgb(59 42 34 / 0.14);
+	}
+
+	.paper :is(h1, h2, h3, h4) {
+		color: var(--color-ink);
+		text-shadow: none;
+	}
+
+	.knob {
+		display: inline-grid;
+		place-items: center;
+		width: 3.25rem;
+		height: 3.25rem;
+		color: var(--color-outline);
+		font-weight: 800;
+		text-shadow: none;
+		background: radial-gradient(circle at 35% 30%, var(--color-knob-light), var(--color-knob));
+		border: 3px solid var(--color-outline);
+		border-radius: 9999px;
+		box-shadow:
+			inset 0 -3px 0 var(--color-knob-edge),
+			0 4px 0 var(--color-wood-dark);
+		transition:
+			transform var(--dur-fast) var(--ease-out),
+			box-shadow var(--dur-fast) var(--ease-out);
+	}
+
+	.knob-sm {
+		width: 2.75rem;
+		height: 2.75rem;
+	}
+
+	.knob-on {
+		background: radial-gradient(circle at 35% 30%, #fff6c8, var(--color-glow));
+		box-shadow:
+			inset 0 -3px 0 color-mix(in oklab, var(--color-glow) 70%, var(--color-outline)),
+			0 4px 0 var(--color-wood-dark),
+			0 0 0 3px color-mix(in oklab, var(--color-glow) 60%, transparent);
+	}
+}
+
+@layer components {
 	.tile-grid {
 		--tile-size: 56px;
 		--water-min: 40px;
@@ -181,6 +329,7 @@
 	}
 
 	.camera-window {
+		border-color: var(--color-glow);
 		top: calc(var(--first) * (var(--tile-size) + 0.25rem) - 0.25rem);
 		height: calc(var(--count) * (var(--tile-size) + 0.25rem) + 0.25rem);
 	}
