@@ -2,10 +2,12 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Disclosure from '$lib/components/ui/Disclosure.svelte';
 	import { factById } from '$lib/content/facts';
-	import { actionNames } from '$lib/content/lab';
+	import { actionNames, lab, segmentLabel } from '$lib/content/lab';
 	import { narration } from '$lib/content/narration';
+	import { segmentIndices } from '$lib/sim';
 	import { narrator } from '$lib/state/narrator.svelte';
 	import { getSession, type Tool } from '$lib/state/simulation.svelte';
+	import { getCamera } from '$lib/world/camera.svelte';
 
 	interface Props {
 		compact?: boolean;
@@ -14,6 +16,7 @@
 	let { compact = false }: Props = $props();
 
 	const session = getSession();
+	const camera = getCamera();
 	const TYPING_MAX_MS = 1500;
 	const TYPING_MS_PER_WORD = 60;
 	const TYPING_TICK_MS = 50;
@@ -27,6 +30,9 @@
 	const fact = $derived(current?.factId ? factById(current.factId) : null);
 	const suggestedTool = $derived<Tool | null>(
 		current?.suggestedAction ? { type: current.suggestedAction } : null
+	);
+	const focusSegment = $derived(
+		segmentIndices.find((index) => current?.highlightSegments.includes(index)) ?? null
 	);
 	const sourceLabel = $derived(
 		current?.source === 'ai' ? narration.sourceAi : narration.sourceTemplate
@@ -68,15 +74,29 @@
 			<span class="text-ink-muted">{narration.monthPrefix} {current.month}</span>
 		</div>
 		<p>{displayText}</p>
-		{#if suggestedTool !== null}
-			<div>
-				<Button
-					variant="secondary"
-					size="sm"
-					onclick={() => (session.selectedTool = suggestedTool)}
-				>
-					{narration.pickTool}: {actionNames[suggestedTool.type]}
-				</Button>
+		{#if suggestedTool !== null || (camera !== null && focusSegment !== null)}
+			<div class="flex flex-wrap gap-2">
+				{#if suggestedTool !== null}
+					<Button
+						variant="secondary"
+						size="sm"
+						onclick={() => (session.selectedTool = suggestedTool)}
+					>
+						{narration.pickTool}: {actionNames[suggestedTool.type]}
+					</Button>
+				{/if}
+				{#if camera !== null && focusSegment !== null}
+					<Button
+						variant="secondary"
+						size="sm"
+						onclick={() => {
+							session.focusedSegment = focusSegment;
+							void camera.flyToSegment(focusSegment);
+						}}
+					>
+						{lab.showOnWorld}: {segmentLabel(focusSegment)}
+					</Button>
+				{/if}
 			</div>
 		{/if}
 		{#if fact !== null && !compact}

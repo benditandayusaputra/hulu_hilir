@@ -17,8 +17,10 @@
 	import { formatBillions } from '$lib/format/number';
 	import type { EventType } from '$lib/sim';
 	import { getSession, toolCost } from '$lib/state/simulation.svelte';
+	import { getCamera } from '$lib/world/camera.svelte';
 
 	const session = getSession();
+	const camera = getCamera();
 
 	const icons: Record<EventType, LucideIcon> = {
 		heavy_rain: CloudRain,
@@ -55,6 +57,13 @@
 
 	$effect(() => {
 		if (!open && session.pendingEvent !== null) session.dismissEvent();
+	});
+
+	$effect(() => {
+		const segment = event?.segment ?? null;
+		if (segment === null || camera === null) return;
+		session.focusedSegment = segment;
+		void camera.flyToSegment(segment);
 	});
 </script>
 
