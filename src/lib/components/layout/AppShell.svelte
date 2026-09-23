@@ -61,7 +61,7 @@
 <Announcer />
 <Toast />
 
-<div class="flex min-h-dvh flex-col">
+<div class="flex flex-col {shell.immersive ? 'h-dvh' : 'min-h-dvh'}">
 	<header class="border-b-[1.5px] border-ink/10 bg-surface">
 		<div
 			class="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 {shell.fullWidth
@@ -97,16 +97,18 @@
 	<main
 		id={mainId}
 		tabindex="-1"
-		class="mx-auto w-full flex-1 px-4 py-8 {shell.fullWidth ? 'max-w-[88rem]' : 'max-w-6xl'}"
+		class={shell.immersive
+			? 'relative min-h-0 w-full flex-1'
+			: `mx-auto w-full flex-1 px-4 py-8 ${shell.fullWidth ? 'max-w-[88rem]' : 'max-w-6xl'}`}
 	>
 		{@render children()}
 	</main>
 
 	<footer class="border-t-[1.5px] border-ink/10 bg-surface-2">
 		<div
-			class="mx-auto flex w-full flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm text-ink-muted {shell.fullWidth
-				? 'max-w-[88rem]'
-				: 'max-w-6xl'}"
+			class="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 px-4 text-sm text-ink-muted {shell.immersive
+				? 'py-1'
+				: 'py-6'} {shell.fullWidth || shell.immersive ? 'max-w-[88rem]' : 'max-w-6xl'}"
 		>
 			<p>{ui.copyright}</p>
 			<nav aria-label={ui.footerNavLabel}>

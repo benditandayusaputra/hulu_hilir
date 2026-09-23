@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { gotoReady, tabKey } from '../ready';
+import { gotoReady, settleAnimations, tabKey } from '../ready';
 
 declare global {
 	interface Window {
@@ -89,21 +89,32 @@ test.describe('Lab: panggung sungai', () => {
 			client: document.documentElement.clientWidth
 		}));
 		expect(widths.scroll).toBeLessThanOrEqual(widths.client);
+		await page.getByRole('button', { name: 'Peta Petak' }).click();
+		await expect(page.getByRole('dialog', { name: 'Peta Petak' })).toBeVisible();
+		await settleAnimations(page);
 		const box = await cell(page, 1, 1).boundingBox();
 		expect(box?.width ?? 0).toBeGreaterThanOrEqual(56);
 		expect(box?.height ?? 0).toBeGreaterThanOrEqual(56);
-		await page.getByRole('button', { name: 'Inspektor Segmen' }).click();
-		const inspector = page.getByRole('dialog', { name: 'Inspektor Segmen' });
+		await page.keyboard.press('Escape');
+		await page.getByRole('button', { name: 'Panel', exact: true }).click();
+		const panel = page.getByRole('dialog', { name: 'Panel' });
+		await panel.getByRole('tab', { name: 'Inspektor' }).click();
+		const inspector = panel.getByRole('region', { name: 'Inspektor Segmen' });
 		await inspector.getByRole('switch', { name: 'Mode Ilmiah' }).click();
 		await expect(inspector.getByRole('table')).toBeVisible();
-		const sheet = await inspector.evaluate((element) => ({
+		const sheet = await panel.evaluate((element) => ({
 			scroll: element.scrollWidth,
 			client: element.clientWidth
 		}));
 		expect(sheet.scroll).toBeLessThanOrEqual(sheet.client);
 		await page.keyboard.press('Escape');
 		await page.getByRole('button', { name: 'Tampilan Tabel' }).click();
-		await page.getByText('Lihat data').click();
+		await expect(
+			page.getByRole('table', { name: 'Status, ikan, dan risiko banjir per segmen' })
+		).toBeVisible();
+		await page.getByRole('button', { name: 'Panel', exact: true }).click();
+		await panel.getByRole('tab', { name: 'Riwayat' }).click();
+		await panel.getByText('Lihat data').click();
 		const after = await page.evaluate(() => ({
 			scroll: document.documentElement.scrollWidth,
 			client: document.documentElement.clientWidth
@@ -237,6 +248,7 @@ test.describe('Lab: inspektor, tabel, dan grafik', () => {
 		page
 	}) => {
 		await gotoReady(page, '/lab');
+		await page.getByRole('tab', { name: 'Inspektor' }).click();
 		const inspector = page.getByRole('region', { name: 'Inspektor Segmen' });
 		await expect(inspector.getByRole('heading', { level: 3 })).toHaveText('Segmen 1 Hulu Atas');
 		await cell(page, 4, 2).click();
@@ -284,6 +296,7 @@ test.describe('Lab: inspektor, tabel, dan grafik', () => {
 	test('grafik riwayat punya ringkasan dan tabel data', async ({ page }) => {
 		await gotoReady(page, '/lab');
 		for (let i = 0; i < 3; i += 1) await page.getByRole('button', { name: 'Maju 1 bulan' }).click();
+		await page.getByRole('tab', { name: 'Riwayat' }).click();
 		const figure = page.getByRole('figure');
 		await expect(figure).toContainText(/Kualitas Air dari \d+ ke \d+ dalam 3 bulan\./);
 		await figure.getByText('Lihat data').click();
@@ -294,17 +307,23 @@ test.describe('Lab: inspektor, tabel, dan grafik', () => {
 });
 
 test.describe('Lab: tata letak responsif dan performa', () => {
-	test('di lebar 360 px palet dan panel aksi tampil sebagai lembar', async ({ page }) => {
+	test('di lebar 360 px Peta Petak, panel aksi, dan panel samping tampil sebagai lembar', async ({
+		page
+	}) => {
 		await page.setViewportSize({ width: 360, height: 740 });
 		await gotoReady(page, '/lab');
-		await page.getByRole('button', { name: 'Alat', exact: true }).focus();
+		const factoryTool = page.getByRole('radio', { name: 'Pabrik', exact: true });
+		await factoryTool.check();
+		await expect(page.getByText('Alat terpilih: Pabrik', { exact: true })).toBeVisible();
+		const mapButton = page.getByRole('button', { name: 'Peta Petak' });
+		await mapButton.focus();
 		await page.keyboard.press('Enter');
-		const sheet = page.getByRole('dialog', { name: 'Palet alat' });
-		await expect(sheet).toBeVisible();
-		await sheet.getByRole('radio', { name: 'Pabrik', exact: true }).check();
-		await sheet.getByRole('button', { name: 'Tutup' }).click();
-		await expect(sheet).toBeHidden();
-		await expect(page.getByRole('button', { name: 'Alat', exact: true })).toBeFocused();
+		const map = page.getByRole('dialog', { name: 'Peta Petak' });
+		await expect(map).toBeVisible();
+		await map.getByRole('button', { name: 'Tutup' }).click();
+		await expect(map).toBeHidden();
+		await expect(mapButton).toBeFocused();
+		await mapButton.click();
 		await cell(page, 2, 1).click();
 		const panel = page.getByRole('dialog', { name: 'Segmen 2 Hulu, kiri dekat sungai' });
 		await expect(panel).toBeVisible();
@@ -315,29 +334,41 @@ test.describe('Lab: tata letak responsif dan performa', () => {
 		await expect(cell(page, 2, 1)).toBeFocused();
 		const time = await page.getByRole('region', { name: 'Kontrol waktu' }).boundingBox();
 		expect((time?.y ?? 0) + (time?.height ?? 0)).toBeLessThanOrEqual(741);
-		await page.getByRole('button', { name: 'Inspektor Segmen' }).click();
-		await expect(page.getByRole('dialog', { name: 'Inspektor Segmen' })).toBeVisible();
+		await page.keyboard.press('Escape');
+		await page.getByRole('button', { name: 'Panel', exact: true }).click();
+		const side = page.getByRole('dialog', { name: 'Panel' });
+		await side.getByRole('tab', { name: 'Inspektor' }).click();
+		await expect(side.getByRole('heading', { name: 'Inspektor Segmen' })).toBeVisible();
 	});
 
-	test('di lebar 800 px palet, indikator, dan inspektor menjadi tab', async ({ page }) => {
+	test('di lebar 800 px panel samping menjadi laci bertab dan Peta Petak menjadi lembar', async ({
+		page
+	}) => {
 		await page.setViewportSize({ width: 800, height: 900 });
 		await gotoReady(page, '/lab');
+		const toggle = page.getByRole('button', { name: 'Tampilkan panel' });
+		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+		await toggle.click();
+		await expect(page.getByRole('button', { name: 'Sembunyikan panel' })).toHaveAttribute(
+			'aria-expanded',
+			'true'
+		);
 		const tablist = page.getByRole('tablist', { name: 'Panel' });
-		await expect(tablist.getByRole('tab')).toHaveCount(4);
-		const tools = tablist.getByRole('tab', { name: 'Alat' });
-		await expect(tools).toHaveAttribute('aria-selected', 'true');
-		await tools.focus();
+		await expect(tablist.getByRole('tab')).toHaveCount(3);
+		const narrator = tablist.getByRole('tab', { name: 'Narator' });
+		await expect(narrator).toHaveAttribute('aria-selected', 'true');
+		await narrator.focus();
 		await page.keyboard.press('ArrowRight');
-		await expect(tablist.getByRole('tab', { name: 'Narator' })).toBeFocused();
+		await expect(tablist.getByRole('tab', { name: 'Inspektor' })).toBeFocused();
 		await page.keyboard.press('ArrowRight');
-		const indicators = tablist.getByRole('tab', { name: 'Indikator' });
-		await expect(indicators).toBeFocused();
-		await expect(indicators).toHaveAttribute('aria-selected', 'false');
+		const history = tablist.getByRole('tab', { name: 'Riwayat' });
+		await expect(history).toBeFocused();
+		await expect(history).toHaveAttribute('aria-selected', 'false');
 		await page.keyboard.press('Enter');
-		await expect(indicators).toHaveAttribute('aria-selected', 'true');
-		await expect(
-			page.getByRole('tabpanel').getByRole('meter', { name: 'Kualitas Air' })
-		).toBeVisible();
+		await expect(history).toHaveAttribute('aria-selected', 'true');
+		await expect(page.getByRole('tabpanel').getByRole('figure')).toBeVisible();
+		await expect(page.getByRole('meter', { name: 'Kualitas Air' })).toBeVisible();
+		await page.getByRole('button', { name: 'Peta Petak' }).click();
 		await cell(page, 3, 2).click();
 		await expect(page.getByRole('dialog', { name: 'Segmen 3 Tengah, air' })).toBeVisible();
 	});

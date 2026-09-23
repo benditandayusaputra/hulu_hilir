@@ -5,12 +5,6 @@
 	import { INDICATOR_MAX, type Indicators } from '$lib/sim';
 	import { getSession } from '$lib/state/simulation.svelte';
 
-	interface Props {
-		compact?: boolean;
-	}
-
-	let { compact = false }: Props = $props();
-
 	const session = getSession();
 	const keys: readonly (keyof Indicators)[] = ['waterQuality', 'fish', 'floodRisk', 'economy'];
 
@@ -33,20 +27,24 @@
 	const cash = $derived(session.state.cash);
 </script>
 
-<div class={compact ? 'grid grid-cols-2 gap-x-4 gap-y-2' : 'flex flex-col gap-4'}>
+<div class="grid grid-cols-2 gap-x-3 gap-y-1 md:flex md:flex-wrap md:items-center md:gap-x-5">
 	{#each rows as row (row.key)}
-		<IndicatorMeter
-			label={row.label}
-			value={row.value}
-			max={INDICATOR_MAX}
-			valueText={row.valueText}
-			trend={row.trend}
-			deltaText={row.deltaText}
-			{compact}
-		/>
+		<div class="min-w-0 md:w-36">
+			<IndicatorMeter
+				label={row.label}
+				value={row.value}
+				max={INDICATOR_MAX}
+				valueText={row.valueText}
+				trend={row.trend}
+				deltaText={row.deltaText}
+				compact={true}
+			/>
+		</div>
 	{/each}
-	<p class="flex items-baseline justify-between gap-2 {compact ? 'col-span-2 text-sm' : ''}">
+	<p class="col-span-2 flex items-baseline gap-2 text-sm md:flex-col md:gap-0">
 		<span class="font-medium">{lab.cash}</span>
-		<span data-numeric>{cash === null ? lab.cashUnlimited : formatBillions(cash)}</span>
+		<span data-numeric class="font-semibold">
+			{cash === null ? lab.cashUnlimited : formatBillions(cash)}
+		</span>
 	</p>
 </div>

@@ -3,10 +3,11 @@
 
 	interface Props {
 		text: string;
+		side?: 'top' | 'left';
 		children: Snippet<[string]>;
 	}
 
-	let { text, children }: Props = $props();
+	let { text, side = 'top', children }: Props = $props();
 
 	const id = $props.id();
 	let visible = $state(false);
@@ -43,7 +44,10 @@
 		role="tooltip"
 		{id}
 		hidden={!visible}
-		class="absolute bottom-full left-1/2 z-30 mb-2 -translate-x-1/2 rounded-[var(--radius-control)] bg-ink px-2 py-1 text-sm whitespace-nowrap text-bg shadow"
+		class="absolute z-30 rounded-[var(--radius-control)] bg-ink px-2 py-1 text-sm whitespace-nowrap text-bg shadow {side ===
+		'top'
+			? 'bottom-full left-1/2 mb-2 -translate-x-1/2'
+			: 'top-1/2 right-full mr-2 -translate-y-1/2'}"
 	>
 		{text}
 	</span>

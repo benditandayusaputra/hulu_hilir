@@ -8,7 +8,8 @@
 		pickOption,
 		settings,
 		textSizeOptions,
-		themeOptions
+		themeOptions,
+		worldDetailOptions
 	} from '$lib/state/settings.svelte';
 
 	interface Props {
@@ -23,6 +24,12 @@
 	let { open = $bindable() }: Props = $props();
 
 	const groupId = $props.id();
+
+	const detailChoices: RadioOption[] = [
+		{ value: 'auto', label: settingsContent.worldDetail.auto },
+		{ value: 'light', label: settingsContent.worldDetail.light },
+		{ value: 'full', label: settingsContent.worldDetail.full }
+	];
 
 	const themeChoices: RadioOption[] = [
 		{ value: 'system', label: settingsContent.theme.system },
@@ -52,6 +59,11 @@
 		{ value: 'important', label: settingsContent.narration.important },
 		{ value: 'normal', label: settingsContent.narration.normal }
 	];
+
+	function selectDetail(value: string): void {
+		settings.worldDetail = pickOption(value, worldDetailOptions, settings.worldDetail);
+		settings.save();
+	}
 
 	function selectTheme(value: string): void {
 		settings.theme = pickOption(value, themeOptions, settings.theme);
@@ -120,6 +132,13 @@
 
 <Dialog bind:open title={settingsContent.title} description={settingsContent.description}>
 	<div class="flex flex-col gap-4">
+		{@render radioGroup(
+			settingsContent.worldDetail.legend,
+			'detail',
+			detailChoices,
+			settings.worldDetail,
+			selectDetail
+		)}
 		{@render radioGroup(
 			settingsContent.theme.legend,
 			'theme',

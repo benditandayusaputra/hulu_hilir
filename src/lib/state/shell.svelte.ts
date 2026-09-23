@@ -6,7 +6,13 @@ export interface PageSkipLink {
 interface ShellState {
 	skipLinks: PageSkipLink[];
 	fullWidth: boolean;
+	immersive: boolean;
 	helpOpen: boolean;
 }
 
-export const shell = $state<ShellState>({ skipLinks: [], fullWidth: false, helpOpen: false });
+export const shell = $state<ShellState>({
+	skipLinks: [],
+	fullWidth: false,
+	immersive: false,
+	helpOpen: false
+});

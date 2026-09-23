@@ -46,6 +46,12 @@ export const settingsContent = {
 		smp: 'SMP',
 		sma: 'SMA'
 	},
+	worldDetail: {
+		legend: 'Detail dunia',
+		auto: 'Otomatis',
+		light: 'Ringan',
+		full: 'Penuh'
+	},
 	narratorVoice: 'Suara narator',
 	scientificMode: 'Mode Ilmiah',
 	keyboardShortcuts: 'Pintasan keyboard satu huruf'

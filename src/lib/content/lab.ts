@@ -330,7 +330,18 @@ export const lab = {
 	openPanel: 'Panel',
 	tabTools: 'Alat',
 	tabIndicators: 'Indikator',
-	tabInspector: 'Inspektor'
+	tabInspector: 'Inspektor',
+	tabHistory: 'Riwayat',
+	tileMap: 'Peta Petak',
+	cameraControls: 'Kontrol kamera',
+	zoomIn: 'Perbesar',
+	zoomOut: 'Perkecil',
+	showAll: 'Lihat seluruh sungai',
+	panelShow: 'Tampilkan panel',
+	panelHide: 'Sembunyikan panel',
+	closeTable: 'Tutup tabel sungai',
+	showOnWorld: 'Lihat di dunia',
+	moreTime: 'Kecepatan dan riwayat'
 } as const;
 
 export interface KeyboardHelpRow {
@@ -341,7 +352,7 @@ export interface KeyboardHelpRow {
 export const keyboardHelp: readonly KeyboardHelpRow[] = [
 	{
 		keys: ['Tab', 'Shift+Tab'],
-		action: 'Pindah antarwilayah: palet, panggung, panel, kontrol waktu'
+		action: 'Pindah antarwilayah: indikator, Peta Petak, hotbar, panel, kontrol waktu'
 	},
 	{ keys: ['↑', '↓'], action: 'Pindah ke segmen hulu atau hilir' },
 	{ keys: ['←', '→'], action: 'Pindah sel dalam segmen' },
@@ -354,7 +365,10 @@ export const keyboardHelp: readonly KeyboardHelpRow[] = [
 	{ keys: ['N'], action: 'Maju 1 bulan' },
 	{ keys: ['1', '2', '3'], action: 'Kecepatan 1x, 2x, 4x' },
 	{ keys: ['T'], action: 'Buka atau tutup Tampilan Tabel' },
-	{ keys: ['?'], action: 'Buka Bantuan' }
+	{ keys: ['?'], action: 'Buka Bantuan' },
+	{ keys: ['+', '-'], action: 'Perbesar atau perkecil Dunia Sungai' },
+	{ keys: ['0'], action: 'Lihat seluruh sungai' },
+	{ keys: ['F'], action: 'Arahkan kamera ke petak yang sedang difokus' }
 ];
 
 export const keyboardHelpNote =

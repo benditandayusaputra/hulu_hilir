@@ -56,7 +56,7 @@
 	aria-labelledby={titleId}
 	aria-describedby={description === '' ? undefined : descriptionId}
 	onclose={() => (open = false)}
-	class="overflow-auto border-[1.5px] border-ink/10 bg-surface p-6 text-ink backdrop:bg-black/50 {sideClass[
+	class="overflow-auto border-[1.5px] border-ink/10 bg-surface p-4 text-ink backdrop:bg-black/50 sm:p-6 {sideClass[
 		side
 	]}"
 >

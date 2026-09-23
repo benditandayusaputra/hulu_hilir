@@ -54,23 +54,25 @@ test('axe nol pelanggaran saat simulasi Lab berjalan', async ({ page }) => {
 test('axe nol pelanggaran saat Tampilan Tabel dan Mode Ilmiah aktif', async ({ page }) => {
 	await gotoReady(page, '/lab');
 	await page.getByRole('button', { name: 'Tampilan Tabel' }).click();
+	await page.getByRole('tab', { name: 'Inspektor' }).click();
 	await page.getByRole('switch', { name: 'Mode Ilmiah' }).click();
+	await page.getByRole('tab', { name: 'Riwayat' }).click();
 	await page.getByText('Lihat data').click();
 	await expect(page.getByRole('table', { name: 'Riwayat indikator' })).toBeVisible();
 	const results = await new AxeBuilder({ page }).analyze();
 	expect(results.violations).toEqual([]);
 });
 
-test('axe nol pelanggaran di lebar 320 px saat lembar alat dan panel aksi terbuka', async ({
+test('axe nol pelanggaran di lebar 320 px saat Peta Petak dan panel aksi terbuka', async ({
 	page
 }) => {
 	await page.setViewportSize({ width: 320, height: 720 });
 	await gotoReady(page, '/lab');
-	await page.getByRole('button', { name: 'Alat', exact: true }).click();
-	await expect(page.getByRole('dialog', { name: 'Palet alat' })).toBeVisible();
+	expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+	await page.getByRole('button', { name: 'Peta Petak' }).click();
+	await expect(page.getByRole('dialog', { name: 'Peta Petak' })).toBeVisible();
 	await settleAnimations(page);
 	expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-	await page.keyboard.press('Escape');
 	await page.locator('[data-cell="3-2"]').click();
 	await expect(page.getByRole('dialog', { name: 'Segmen 3 Tengah, air' })).toBeVisible();
 	await settleAnimations(page);
@@ -80,6 +82,7 @@ test('axe nol pelanggaran di lebar 320 px saat lembar alat dan panel aksi terbuk
 test('axe nol pelanggaran di lebar 800 px dengan tab panel', async ({ page }) => {
 	await page.setViewportSize({ width: 800, height: 900 });
 	await gotoReady(page, '/lab');
+	await page.getByRole('button', { name: 'Tampilkan panel' }).click();
 	await page.getByRole('tab', { name: 'Inspektor' }).click();
 	const results = await new AxeBuilder({ page }).analyze();
 	expect(results.violations).toEqual([]);
