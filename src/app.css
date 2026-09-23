@@ -175,6 +175,16 @@
 		}
 	}
 
+	.tile-grid-compact {
+		--tile-size: 44px;
+		--water-min: 44px;
+	}
+
+	.camera-window {
+		top: calc(var(--first) * (var(--tile-size) + 0.25rem) - 0.25rem);
+		height: calc(var(--count) * (var(--tile-size) + 0.25rem) + 0.25rem);
+	}
+
 	.flow-particles {
 		animation: flow-down var(--flow-duration, 3s) linear infinite;
 	}
@@ -223,5 +233,195 @@
 
 	:root[data-motion='reduced'] .flow-chevrons {
 		display: block;
+	}
+}
+
+@layer components {
+	[data-paused] .world-loop {
+		animation-play-state: paused;
+	}
+
+	.world-water {
+		transition: stroke var(--dur-slow) var(--ease-out);
+	}
+
+	.world-flood {
+		transition:
+			stroke-width var(--dur-slow) var(--ease-out),
+			opacity var(--dur-slow) var(--ease-out);
+	}
+
+	.world-ring {
+		transition: stroke-dasharray var(--dur-slow) var(--ease-out);
+	}
+
+	.world-label {
+		font-family: var(--font-display);
+		font-weight: 700;
+		paint-order: stroke;
+		stroke-linejoin: round;
+		text-anchor: middle;
+		dominant-baseline: middle;
+	}
+
+	.world-flow {
+		animation: world-flow 3s linear infinite;
+	}
+
+	.world-sea {
+		animation: world-sea 16s linear infinite;
+	}
+
+	.world-drift {
+		transform-box: fill-box;
+		transform-origin: center;
+		animation: world-drift 5s ease-in-out infinite;
+	}
+
+	.world-swim {
+		transform-box: fill-box;
+		transform-origin: center;
+		animation: world-swim 4s ease-in-out infinite alternate;
+	}
+
+	.world-smoke {
+		transform-box: fill-box;
+		transform-origin: center;
+		animation: world-smoke 3.3s ease-out infinite;
+	}
+
+	.world-bounce {
+		transform-box: fill-box;
+		transform-origin: 50% 100%;
+		animation: world-bounce 600ms var(--ease-out);
+	}
+
+	.world-dust {
+		transform-box: fill-box;
+		transform-origin: center;
+		animation: world-dust 900ms ease-out forwards;
+	}
+
+	.world-cash {
+		animation: world-cash 1600ms var(--ease-out) forwards;
+	}
+
+	.world-jump {
+		transform-box: fill-box;
+		transform-origin: center;
+		animation: world-jump 1200ms ease-in-out forwards;
+	}
+
+	.world-splash {
+		transform-box: fill-box;
+		transform-origin: center;
+		animation: world-splash 1200ms ease-out forwards;
+	}
+
+	@keyframes world-flow {
+		to {
+			stroke-dashoffset: -90;
+		}
+	}
+
+	@keyframes world-sea {
+		to {
+			transform: translateX(-180px);
+		}
+	}
+
+	@keyframes world-drift {
+		50% {
+			transform: translate(14px, 2px) rotate(6deg);
+		}
+	}
+
+	@keyframes world-swim {
+		from {
+			transform: translateX(-12px);
+		}
+		to {
+			transform: translateX(12px);
+		}
+	}
+
+	@keyframes world-smoke {
+		0% {
+			opacity: 0;
+			transform: translate(0, 0) scale(0.5);
+		}
+		15% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+			transform: translate(28px, -70px) scale(1.8);
+		}
+	}
+
+	@keyframes world-bounce {
+		30% {
+			transform: scale(1.08, 0.92);
+		}
+		60% {
+			transform: scale(0.97, 1.05);
+		}
+	}
+
+	@keyframes world-dust {
+		from {
+			opacity: 0.95;
+			transform: translate(0, 0) scale(0.4);
+		}
+		to {
+			opacity: 0;
+			transform: translate(var(--dx), var(--dy)) scale(1.4);
+		}
+	}
+
+	@keyframes world-cash {
+		0% {
+			opacity: 0;
+			transform: translateY(0);
+		}
+		15% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+			transform: translateY(-110px);
+		}
+	}
+
+	@keyframes world-jump {
+		0% {
+			opacity: 0;
+			transform: translate(-20px, 10px) rotate(30deg);
+		}
+		15% {
+			opacity: 1;
+		}
+		50% {
+			transform: translate(0, -60px) rotate(0deg);
+		}
+		100% {
+			opacity: 0;
+			transform: translate(20px, 10px) rotate(-30deg);
+		}
+	}
+
+	@keyframes world-splash {
+		0%,
+		70% {
+			opacity: 0;
+			transform: scale(0.4);
+		}
+		85% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+			transform: scale(1.4);
+		}
 	}
 }
