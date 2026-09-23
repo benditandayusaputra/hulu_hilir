@@ -30,6 +30,7 @@
 		'inline-flex min-h-11 items-center rounded-[var(--radius-control)] px-2.5 font-semibold aria-[current=page]:bg-surface aria-[current=page]:text-ink aria-[current=page]:text-shadow-none max-sm:text-base sm:px-3';
 
 	let settingsOpen = $state(false);
+	let headerHeight = $state(0);
 	let systemPrefersDark = $state(false);
 	let systemPrefersReducedMotion = $state(false);
 
@@ -57,14 +58,23 @@
 </script>
 
 <SkipLink targetId={mainId} label={ui.skipToContent} />
-{#each shell.skipLinks as link (link.targetId)}
-	<SkipLink targetId={link.targetId} label={link.label} />
-{/each}
+{#if !shell.uiHidden}
+	{#each shell.skipLinks as link (link.targetId)}
+		<SkipLink targetId={link.targetId} label={link.label} />
+	{/each}
+{/if}
 <Announcer />
 <Toast />
 
-<div class="flex flex-col {shell.immersive ? 'h-dvh' : 'min-h-dvh'}">
-	<header class="wood relative z-10 rounded-none border-x-0 border-t-0">
+<div
+	class={shell.immersive ? 'relative h-dvh overflow-hidden' : 'flex min-h-dvh flex-col'}
+	style:--shell-header={shell.immersive ? `${headerHeight}px` : undefined}
+>
+	<header
+		bind:offsetHeight={headerHeight}
+		inert={shell.uiHidden}
+		class="ui-layer wood relative z-10 rounded-none border-x-0 border-t-0"
+	>
 		<div
 			class="mx-auto flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-1 px-3 py-1.5 sm:px-4 {shell.fullWidth ||
 			shell.immersive
@@ -105,30 +115,30 @@
 		id={mainId}
 		tabindex="-1"
 		class={shell.immersive
-			? 'relative min-h-0 w-full flex-1'
+			? 'absolute inset-0 z-0'
 			: `mx-auto w-full flex-1 px-4 py-8 ${shell.fullWidth ? 'max-w-[88rem]' : 'max-w-6xl'}`}
 	>
 		{@render children()}
 	</main>
 
-	<footer
-		class="wood rounded-none border-x-0 border-b-0 text-sm {shell.immersive ? 'max-sm:hidden' : ''}"
-	>
-		<div
-			class="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 px-4 {shell.immersive
-				? 'py-1'
-				: 'py-5'} {shell.fullWidth || shell.immersive ? 'max-w-[88rem]' : 'max-w-6xl'}"
-		>
-			<p>{ui.copyright}</p>
-			<nav aria-label={ui.footerNavLabel}>
-				<a
-					href={homeHref}
-					class="inline-flex min-h-6 items-center rounded-[var(--radius-control)] px-2 font-semibold"
-					>{ui.home}</a
-				>
-			</nav>
-		</div>
-	</footer>
+	{#if !shell.immersive}
+		<footer class="wood rounded-none border-x-0 border-b-0 text-sm">
+			<div
+				class="mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 px-4 py-5 {shell.fullWidth
+					? 'max-w-[88rem]'
+					: 'max-w-6xl'}"
+			>
+				<p>{ui.copyright}</p>
+				<nav aria-label={ui.footerNavLabel}>
+					<a
+						href={homeHref}
+						class="inline-flex min-h-6 items-center rounded-[var(--radius-control)] px-2 font-semibold"
+						>{ui.home}</a
+					>
+				</nav>
+			</div>
+		</footer>
+	{/if}
 </div>
 
 <SettingsDialog bind:open={settingsOpen} />

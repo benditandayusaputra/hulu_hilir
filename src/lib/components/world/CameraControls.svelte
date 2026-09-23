@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { LucideIcon } from '@lucide/svelte';
-	import Maximize from '@lucide/svelte/icons/maximize';
+	import MapIcon from '@lucide/svelte/icons/map';
 	import ZoomIn from '@lucide/svelte/icons/zoom-in';
 	import ZoomOut from '@lucide/svelte/icons/zoom-out';
 	import RoundButton from '$lib/components/hud/art/RoundButton.svelte';
@@ -26,7 +26,7 @@
 	const controls: Control[] = [
 		{ label: lab.zoomIn, key: '+', icon: ZoomIn, run: () => void camera?.zoomIn() },
 		{ label: lab.zoomOut, key: '-', icon: ZoomOut, run: () => void camera?.zoomOut() },
-		{ label: lab.showAll, key: '0', icon: Maximize, run: () => void camera?.showAll() }
+		{ label: lab.showAll, key: '0', icon: MapIcon, run: () => void camera?.showAll() }
 	];
 </script>
 

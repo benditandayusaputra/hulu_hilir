@@ -252,6 +252,80 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 	});
 });
 
+test.describe('Lab: layar penuh dan antarmuka tersembunyi', () => {
+	test('antarmuka disembunyikan dengan tombol dan H lalu kembali dengan H atau Escape', async ({
+		page
+	}) => {
+		await gotoReady(page, '/lab/desa');
+		const grid = page.locator('.lab-grid');
+		const header = page.locator('header');
+		const hideButton = page.getByRole('button', { name: 'Sembunyikan antarmuka' });
+		const showButton = page.getByRole('button', { name: 'Tampilkan antarmuka' });
+		await expect(showButton).toHaveCount(0);
+		await hideButton.focus();
+		await page.keyboard.press('Enter');
+		await expect(showButton).toBeFocused();
+		await expect(page.locator('[aria-live="polite"]')).toHaveText(
+			'Antarmuka disembunyikan. Tekan H untuk menampilkan lagi.'
+		);
+		for (const hidden of [grid, header]) {
+			await expect(hidden).toHaveAttribute('inert', '');
+			await expect(hidden).toBeHidden();
+		}
+		await expect(hud(page)).toHaveCount(0);
+		await expect(page.getByRole('link', { name: 'Lewati ke panggung sungai' })).toHaveCount(0);
+		await expect(page.getByRole('link', { name: 'Lewati ke kontrol waktu' })).toHaveCount(0);
+		await expect(page.getByRole('link', { name: 'Lewati ke konten utama' })).toHaveCount(1);
+		for (const name of ['Putar', 'Perbesar', 'Perkecil', 'Lihat seluruh sungai']) {
+			await expect(page.getByRole('button', { name })).toBeVisible();
+		}
+		await page.keyboard.press('h');
+		await expect(hideButton).toBeFocused();
+		await expect(grid).not.toHaveAttribute('inert');
+		await expect(hud(page)).toBeVisible();
+		await expect(header).toBeVisible();
+
+		await cell(page, 3, 1).focus();
+		await page.keyboard.press('h');
+		await expect(showButton).toBeFocused();
+		await expect(grid).toBeHidden();
+		await page.keyboard.press('Escape');
+		await expect(cell(page, 3, 1)).toBeFocused();
+		await expect(grid).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Lewati ke panggung sungai' })).toHaveCount(1);
+	});
+
+	test('tetikus menyembunyikan dan menampilkan antarmuka tanpa menghentikan simulasi', async ({
+		page
+	}) => {
+		await gotoReady(page, '/lab/desa');
+		await page.getByRole('button', { name: 'Sembunyikan antarmuka' }).click();
+		await expect(page.locator('.lab-grid')).toBeHidden();
+		await page.getByRole('button', { name: 'Putar' }).click();
+		await expect(page.getByRole('button', { name: 'Jeda' })).toBeVisible();
+		await expect(page.locator('[aria-live="polite"]')).toContainText('tahun 1. Kualitas air');
+		await page.getByRole('button', { name: 'Jeda' }).click();
+		await page.getByRole('button', { name: 'Tampilkan antarmuka' }).click();
+		await expect(hud(page)).toBeVisible();
+		await expect(hud(page)).not.toContainText('(bulan 0)');
+	});
+
+	test('tombol layar penuh mengikuti Fullscreen API', async ({ page, browserName }) => {
+		test.skip(browserName !== 'chromium', 'Layar penuh diuji di Chromium saja');
+		await gotoReady(page, '/lab/desa');
+		const enter = page.getByRole('button', { name: 'Layar penuh' });
+		await expect(enter).toBeVisible();
+		await enter.click();
+		await expect(page.getByRole('button', { name: 'Keluar dari layar penuh' })).toBeVisible();
+		expect(await page.evaluate(() => document.fullscreenElement === document.documentElement)).toBe(
+			true
+		);
+		await page.getByRole('button', { name: 'Keluar dari layar penuh' }).click();
+		await expect(enter).toBeVisible();
+		await expect(page.locator('.lab-grid')).not.toHaveAttribute('inert');
+	});
+});
+
 test.describe('Lab: inspektor, tabel, dan grafik', () => {
 	test('inspektor mengikuti segmen yang difokus dan Mode Ilmiah menampilkan tabel parameter', async ({
 		page

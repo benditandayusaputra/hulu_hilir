@@ -254,8 +254,8 @@ export const segments: readonly SegmentLayout[] = segmentIndices.map((index, ord
 export const riverPath = pathOf(centerline);
 
 export const shorePath =
-	'M2700 3000 L2760 2640 C2800 2420 2980 2270 3200 2180 C3500 2060 3800 2020 4000 2000';
-export const seaPath = `${shorePath} L4000 3000 Z`;
+	'M2690 6000 L2700 3000 L2760 2640 C2800 2420 2980 2270 3200 2180 C3500 2060 3800 2020 4000 2000 L8000 1960';
+export const seaPath = `${shorePath} L8000 6000 Z`;
 
 export function plotById(id: TileId): PlotLayout | null {
 	return plots.find((plot) => plot.id === id) ?? null;

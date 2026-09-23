@@ -360,6 +360,18 @@
 }
 
 @layer components {
+	.ui-layer {
+		transition: opacity var(--dur-base) var(--ease-out);
+	}
+
+	.ui-layer[inert] {
+		visibility: hidden;
+		opacity: 0;
+		transition:
+			opacity var(--dur-base) var(--ease-out),
+			visibility 0s linear var(--dur-base);
+	}
+
 	[data-paused] .world-loop {
 		animation-play-state: paused;
 	}

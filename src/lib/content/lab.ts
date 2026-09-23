@@ -278,6 +278,11 @@ export const lab = {
 	restartBody: (scenario: string) =>
 		`Bulan dan semua aksi di ${scenario} akan dihapus dari perangkat ini.`,
 	sessionReset: 'Sesi tersimpan untuk skenario ini tidak bisa dibaca, jadi Lab dimulai dari awal.',
+	hideUi: 'Sembunyikan antarmuka',
+	showUi: 'Tampilkan antarmuka',
+	uiHidden: 'Antarmuka disembunyikan. Tekan H untuk menampilkan lagi.',
+	fullscreen: 'Layar penuh',
+	exitFullscreen: 'Keluar dari layar penuh',
 	cancel: 'Batal',
 	stageLabel: 'Sungai, 6 segmen dari hulu ke muara',
 	waterCell: 'air',
@@ -425,7 +430,9 @@ export const keyboardHelp: readonly KeyboardHelpRow[] = [
 	{ keys: ['?'], action: 'Buka Bantuan' },
 	{ keys: ['+', '-'], action: 'Perbesar atau perkecil Dunia Sungai' },
 	{ keys: ['0'], action: 'Lihat seluruh sungai' },
-	{ keys: ['F'], action: 'Arahkan kamera ke petak yang sedang difokus' }
+	{ keys: ['F'], action: 'Arahkan kamera ke petak yang sedang difokus' },
+	{ keys: ['H'], action: 'Sembunyikan atau tampilkan antarmuka' },
+	{ keys: ['Escape'], action: 'Tampilkan lagi antarmuka yang tersembunyi' }
 ];
 
 export const keyboardHelpNote =

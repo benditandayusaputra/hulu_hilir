@@ -55,7 +55,13 @@
 	];
 </script>
 
-<rect width={WORLD_WIDTH} height={WORLD_HEIGHT} fill={p.grassLight} />
+<rect
+	x={-WORLD_WIDTH}
+	y={-WORLD_HEIGHT}
+	width={WORLD_WIDTH * 3}
+	height={WORLD_HEIGHT * 3}
+	fill={p.grassLight}
+/>
 <g fill={p.grassMid} opacity="0.35">
 	{#each patches as [cx, cy, rx, ry] (`${cx}-${cy}`)}
 		<ellipse {cx} {cy} {rx} {ry} />

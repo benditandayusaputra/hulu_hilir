@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Factory from '@lucide/svelte/icons/factory';
-	import Maximize from '@lucide/svelte/icons/maximize';
+	import MapIcon from '@lucide/svelte/icons/map';
 	import Play from '@lucide/svelte/icons/play';
 	import TreePine from '@lucide/svelte/icons/tree-pine';
 	import Waves from '@lucide/svelte/icons/waves';
@@ -316,7 +316,7 @@
 							<ZoomOut size={22} aria-hidden="true" />
 						</RoundButton>
 						<RoundButton label={gallery.roundButtons.overview}>
-							<Maximize size={22} aria-hidden="true" />
+							<MapIcon size={22} aria-hidden="true" />
 						</RoundButton>
 					</div>
 				</div>

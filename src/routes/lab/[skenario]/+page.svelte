@@ -1,10 +1,16 @@
 <script lang="ts">
 	import { autoUpdate, computePosition, flip, offset, shift, size } from '@floating-ui/dom';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import Eye from '@lucide/svelte/icons/eye';
+	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import Grid3x3 from '@lucide/svelte/icons/grid-3x3';
+	import Maximize from '@lucide/svelte/icons/maximize';
+	import Minimize from '@lucide/svelte/icons/minimize';
 	import PanelRight from '@lucide/svelte/icons/panel-right';
 	import PanelRightClose from '@lucide/svelte/icons/panel-right-close';
 	import PanelRightOpen from '@lucide/svelte/icons/panel-right-open';
+	import Pause from '@lucide/svelte/icons/pause';
+	import Play from '@lucide/svelte/icons/play';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import Table2 from '@lucide/svelte/icons/table-2';
 	import X from '@lucide/svelte/icons/x';
@@ -95,6 +101,11 @@
 	let focusedCell = $state<CellRef | null>(null);
 	let stageFocused = $state(false);
 	let restartOpen = $state(false);
+	let showUiButton = $state<HTMLButtonElement | null>(null);
+	let hideUiButton = $state<HTMLButtonElement | null>(null);
+	let focusBeforeHide: HTMLElement | null = null;
+	let canFullscreen = $state(false);
+	let fullscreen = $state(false);
 	let openedId = $state<LabRouteId | null>(null);
 	let tableOpen = $state(false);
 	let mapOpen = $state(false);
@@ -283,6 +294,45 @@
 		session.reset(scenarioOf(data.id));
 	}
 
+	async function hideUi(): Promise<void> {
+		const active = document.activeElement;
+		focusBeforeHide = active instanceof HTMLElement && active !== document.body ? active : null;
+		session.selection = null;
+		shell.uiHidden = true;
+		announcer.announce(lab.uiHidden);
+		await tick();
+		showUiButton?.focus();
+	}
+
+	async function showUi(): Promise<void> {
+		shell.uiHidden = false;
+		await tick();
+		const target = focusBeforeHide;
+		focusBeforeHide = null;
+		if (target !== null && target.isConnected) target.focus();
+		if (document.activeElement !== target) hideUiButton?.focus();
+	}
+
+	function toggleUi(): void {
+		if (shell.uiHidden) void showUi();
+		else void hideUi();
+	}
+
+	function toggleFullscreen(): void {
+		const request = document.fullscreenElement
+			? document.exitFullscreen()
+			: document.documentElement.requestFullscreen();
+		request.catch(() => undefined);
+	}
+
+	$effect(() => {
+		canFullscreen = document.fullscreenEnabled;
+		const update = () => (fullscreen = document.fullscreenElement !== null);
+		update();
+		document.addEventListener('fullscreenchange', update);
+		return () => document.removeEventListener('fullscreenchange', update);
+	});
+
 	function isTypingTarget(target: HTMLElement): boolean {
 		if (target.closest('dialog') !== null) return true;
 		if (target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) return true;
@@ -304,11 +354,21 @@
 		else if (key === '0') void camera.showAll();
 		else if (key === 'f')
 			flyToCell(stage?.focusedCell() ?? { segment: 1, column: WATER_COLUMN }, true);
+		else if (key === 'h') toggleUi();
 		else return false;
 		return true;
 	}
 
 	function handleShortcut(event: KeyboardEvent): void {
+		if (
+			event.key === 'Escape' &&
+			shell.uiHidden &&
+			document.querySelector('dialog[open]') === null
+		) {
+			event.preventDefault();
+			void showUi();
+			return;
+		}
 		if (!settings.keyboardShortcuts || event.ctrlKey || event.metaKey || event.altKey) return;
 		const target = event.target;
 		if (!(target instanceof HTMLElement) || root === null || !root.contains(target)) return;
@@ -322,9 +382,11 @@
 			{ targetId: timeSectionId, label: lab.skipToTime }
 		];
 		shell.immersive = true;
+		shell.uiHidden = false;
 		return () => {
 			shell.skipLinks = [];
 			shell.immersive = false;
+			shell.uiHidden = false;
 			session.dispose();
 			camera.stop();
 		};
@@ -373,7 +435,7 @@
 		</p>
 		<a
 			href={pickerHref}
-			class="inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] border-[1.5px] border-ink/10 bg-surface px-3 text-sm font-medium text-ink hover:bg-surface-2"
+			class="inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] border-[1.5px] border-ink/10 bg-surface px-4 font-medium text-ink hover:bg-surface-2"
 		>
 			<ArrowLeft size={18} aria-hidden="true" />
 			{lab.changeScenario}
@@ -476,12 +538,16 @@
 	<RiverWorld
 		focused={stageFocused ? focusedCell : null}
 		onselect={(cell) => {
+			if (shell.uiHidden) return;
 			openPanel(cell);
 			stage?.markFocused(cell);
 		}}
 	/>
 
-	<div class="lab-grid pointer-events-none absolute inset-2">
+	<div
+		inert={shell.uiHidden}
+		class="lab-grid ui-layer pointer-events-none absolute inset-x-2 bottom-2"
+	>
 		<div bind:this={freeArea} class="lab-free"></div>
 
 		<section
@@ -490,11 +556,13 @@
 		>
 			<h1 id="judul-lab" class="text-xl max-xl:sr-only">{lab.title}</h1>
 			<h2 class="sr-only">{lab.indicatorsTitle}</h2>
-			<div class="min-w-0 max-lg:basis-full lg:flex-1">
+			<div class="min-w-0 flex-1 max-sm:basis-full">
 				<IndicatorPanel />
 			</div>
 			{#if weatherText !== '' || session.enforcementActive}
-				<p class="flex flex-wrap gap-1 text-sm text-shadow-none">
+				<p
+					class="flex flex-wrap gap-1 text-sm text-shadow-none max-lg:order-last max-lg:basis-full"
+				>
 					{#if weatherText !== ''}
 						<span class="rounded-[var(--radius-chip)] bg-surface-2 px-2 py-0.5 text-ink"
 							>{weatherText}</span
@@ -510,6 +578,40 @@
 			{#if desktop}
 				{@render tableToggle()}
 			{/if}
+			<div class="ms-auto flex items-center gap-2 sm:max-lg:flex-col">
+				<Tooltip text="{lab.hideUi}, {lab.shortcut}: H" side="left">
+					{#snippet children(describedBy)}
+						<RoundButton
+							bind:element={hideUiButton}
+							label={lab.hideUi}
+							small
+							aria-describedby={describedBy}
+							onclick={() => void hideUi()}
+						>
+							<EyeOff size={20} aria-hidden="true" />
+						</RoundButton>
+					{/snippet}
+				</Tooltip>
+				{#if canFullscreen}
+					<Tooltip text={fullscreen ? lab.exitFullscreen : lab.fullscreen} side="left">
+						{#snippet children(describedBy)}
+							<RoundButton
+								label={fullscreen ? lab.exitFullscreen : lab.fullscreen}
+								small
+								on={fullscreen}
+								aria-describedby={describedBy}
+								onclick={toggleFullscreen}
+							>
+								{#if fullscreen}
+									<Minimize size={20} aria-hidden="true" />
+								{:else}
+									<Maximize size={20} aria-hidden="true" />
+								{/if}
+							</RoundButton>
+						{/snippet}
+					</Tooltip>
+				{/if}
+			</div>
 		</section>
 
 		{#if desktop}
@@ -594,6 +696,42 @@
 		{/if}
 	</div>
 
+	{#if shell.uiHidden}
+		<div class="absolute right-2 bottom-2 z-10 flex flex-col items-center gap-2">
+			<Tooltip text="{lab.showUi}, {lab.shortcut}: H" side="left">
+				{#snippet children(describedBy)}
+					<RoundButton
+						bind:element={showUiButton}
+						label={lab.showUi}
+						small
+						aria-describedby={describedBy}
+						onclick={() => void showUi()}
+					>
+						<Eye size={20} aria-hidden="true" />
+					</RoundButton>
+				{/snippet}
+			</Tooltip>
+			<Tooltip text="{lab.shortcut}: P" side="left">
+				{#snippet children(describedBy)}
+					<RoundButton
+						label={session.playing ? lab.pause : lab.play}
+						small
+						on={session.playing}
+						aria-describedby={describedBy}
+						onclick={() => session.togglePlay()}
+					>
+						{#if session.playing}
+							<Pause size={20} aria-hidden="true" />
+						{:else}
+							<Play size={20} aria-hidden="true" />
+						{/if}
+					</RoundButton>
+				{/snippet}
+			</Tooltip>
+			<CameraControls small />
+		</div>
+	{/if}
+
 	{#if desktop && session.selection !== null}
 		<div
 			bind:this={floating}
@@ -644,6 +782,7 @@
 
 <style>
 	.lab-grid {
+		top: calc(var(--shell-header, 3.25rem) + 0.5rem);
 		display: grid;
 		gap: 0.5rem;
 		grid-template-columns: minmax(0, 1fr) auto;

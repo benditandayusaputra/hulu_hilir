@@ -51,6 +51,17 @@
 		<pattern id="world-water-pattern-heavy" width="16" height="16" patternUnits="userSpaceOnUse">
 			<path d="M0 16 L16 0 M0 0 L16 16" stroke="#8C825E" stroke-width="2" />
 		</pattern>
+		<linearGradient
+			id="world-sea-open"
+			gradientUnits="userSpaceOnUse"
+			x1="0"
+			y1="2000"
+			x2="0"
+			y2="3000"
+		>
+			<stop offset="0" stop-color="#1F6FA3" />
+			<stop offset="1" stop-color="#3FA8D8" />
+		</linearGradient>
 		<clipPath id="world-sea-clip">
 			<path d={seaPath} />
 		</clipPath>

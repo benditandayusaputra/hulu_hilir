@@ -13,13 +13,13 @@
 
 <path d={shore} fill="none" stroke={p.sand} stroke-width="150" stroke-linecap="round" />
 <path d={shore} fill="none" stroke={p.sandWet} stroke-width="50" stroke-linecap="round" />
-<path d={seaPath} fill="url(#world-sea-water)" />
+<path d={seaPath} fill="url(#world-sea-open)" />
 <g clip-path="url(#world-sea-clip)">
 	<rect
 		x="2520"
 		y="1820"
-		width="1660"
-		height="1360"
+		width="5660"
+		height="4360"
 		fill="url(#world-sea-waves)"
 		class="world-sea world-loop"
 	/>

@@ -97,3 +97,15 @@ test('axe nol pelanggaran saat dialog kejadian Kabar Kali terbuka', async ({ pag
 	const results = await new AxeBuilder({ page }).analyze();
 	expect(results.violations).toEqual([]);
 });
+
+for (const scheme of ['light', 'dark'] as const) {
+	test(`axe nol pelanggaran saat antarmuka Lab tersembunyi di tema ${scheme}`, async ({ page }) => {
+		await page.emulateMedia({ colorScheme: scheme });
+		await gotoReady(page, '/lab/desa');
+		await page.getByRole('button', { name: 'Sembunyikan antarmuka' }).click();
+		await expect(page.getByRole('button', { name: 'Tampilkan antarmuka' })).toBeFocused();
+		await settleAnimations(page);
+		const results = await new AxeBuilder({ page }).analyze();
+		expect(results.violations).toEqual([]);
+	});
+}

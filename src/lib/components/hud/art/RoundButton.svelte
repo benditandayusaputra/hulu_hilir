@@ -7,13 +7,23 @@
 		captioned?: boolean;
 		small?: boolean;
 		on?: boolean;
+		element?: HTMLButtonElement | null;
 		children: Snippet;
 	}
 
-	let { label, captioned = false, small = false, on = false, children, ...rest }: Props = $props();
+	let {
+		label,
+		captioned = false,
+		small = false,
+		on = false,
+		element = $bindable(null),
+		children,
+		...rest
+	}: Props = $props();
 </script>
 
 <button
+	bind:this={element}
 	type="button"
 	class="knob-button"
 	class:captioned
