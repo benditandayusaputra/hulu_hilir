@@ -45,6 +45,14 @@
 	--color-water-heavy: #3f3229;
 	--color-water-heavy-edge: #3f3229;
 
+	--color-outline: #3b2a22;
+	--color-plank-ink: #fff4dc;
+	--color-wood-light: #8a5a2f;
+	--color-wood: #7e5130;
+	--color-wood-dark: #6e4526;
+	--color-wood-grain: #6a4224;
+	--color-wood-edge: #a06b3b;
+
 	--dur-fast: 150ms;
 	--dur-base: 250ms;
 	--dur-slow: 600ms;
@@ -74,6 +82,11 @@
 			--color-water-moderate: #9a7240;
 			--color-water-heavy: #2b221c;
 			--color-water-heavy-edge: #8d7f70;
+			--color-wood-light: #5a3a22;
+			--color-wood: #4a3020;
+			--color-wood-dark: #3e2a1e;
+			--color-wood-grain: #3a261a;
+			--color-wood-edge: #6a4a30;
 		}
 	}
 
@@ -96,6 +109,11 @@
 		--color-water-moderate: #9a7240;
 		--color-water-heavy: #2b221c;
 		--color-water-heavy-edge: #8d7f70;
+		--color-wood-light: #5a3a22;
+		--color-wood: #4a3020;
+		--color-wood-dark: #3e2a1e;
+		--color-wood-grain: #3a261a;
+		--color-wood-edge: #6a4a30;
 	}
 }
 
