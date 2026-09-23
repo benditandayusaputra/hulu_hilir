@@ -144,7 +144,10 @@
 	const currentPreset = $derived(presetOf(session.scenario.id));
 	const hasProgress = $derived(session.month > 0 || session.pending.length > 0);
 	const inView = $derived(
-		segmentIndices.filter((index) => intersects(camera.visible, segmentLayout(index).bounds))
+		segmentIndices.filter((index) => {
+			const { anchor } = segmentLayout(index);
+			return intersects(camera.visible, { x: anchor.x, y: anchor.y, width: 1, height: 1 });
+		})
 	);
 	const weatherText = $derived.by(() => {
 		const events = session.latest.events;
@@ -330,11 +333,9 @@
 		aria-labelledby="judul-peta-petak"
 		onfocusin={() => (stageFocused = true)}
 		onfocusout={() => (stageFocused = false)}
-		class="pointer-events-auto shrink-0 focus-visible:outline-offset-4 {viewport === 'phone'
-			? ''
-			: 'rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface/95 p-2 shadow-md'} {desktop
-			? ''
-			: 'self-start'}"
+		class="pointer-events-auto shrink-0 focus-visible:outline-offset-4 {desktop
+			? 'rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface/95 p-2 shadow-md'
+			: ''}"
 	>
 		<h2 id="judul-peta-petak" class="sr-only">{lab.tileMap}</h2>
 		{#if desktop}
@@ -396,14 +397,14 @@
 			class="pointer-events-auto flex min-w-0 flex-1 flex-wrap items-center gap-x-5 gap-y-2 rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface/95 px-3 py-2 shadow-md lg:flex-none"
 		>
 			<h1 id="judul-lab" class="text-lg max-sm:sr-only">{lab.title}</h1>
-			{#if viewport === 'phone'}
-				<div class="flex w-full flex-wrap items-center gap-2">
+			{#if !desktop}
+				<div class="flex flex-wrap items-center gap-2 max-sm:w-full">
 					{@render stageSectionView()}
 					{@render tableToggle()}
 				</div>
 			{/if}
 			<h2 class="sr-only">{lab.indicatorsTitle}</h2>
-			<div class="min-w-0 flex-1 lg:flex-none">
+			<div class="min-w-0 flex-1 max-lg:basis-full lg:flex-none">
 				<IndicatorPanel />
 			</div>
 			{#if weatherText !== '' || session.enforcementActive}
@@ -418,7 +419,7 @@
 					{/if}
 				</p>
 			{/if}
-			{#if viewport !== 'phone'}
+			{#if desktop}
 				{@render tableToggle()}
 			{/if}
 		</section>
@@ -494,7 +495,7 @@
 	<div
 		class="pointer-events-none absolute inset-x-2 bottom-2 flex flex-col gap-2 md:flex-row md:items-end"
 	>
-		{#if viewport !== 'phone'}
+		{#if desktop}
 			{@render stageSectionView()}
 		{/if}
 
@@ -503,7 +504,7 @@
 			class="pointer-events-auto min-w-0 flex-1 rounded-[var(--radius-card)] border-[1.5px] border-ink/10 bg-surface/95 p-2 shadow-md"
 		>
 			<h2 id="judul-hotbar" class="sr-only">{lab.paletteTitle}</h2>
-			<Toolbox compact={viewport === 'phone'} />
+			<Toolbox compact={!desktop} />
 		</section>
 
 		<section
