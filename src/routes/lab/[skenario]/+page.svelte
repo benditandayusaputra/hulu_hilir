@@ -83,6 +83,7 @@
 	const pickerHref = resolve('/lab');
 	const FLOAT_GAP_PX = 28;
 	const FLOAT_PADDING_PX = 8;
+	const FLOAT_MAX_HEIGHT_PX = 640;
 
 	function scenarioOf(id: LabRouteId): Scenario {
 		const scenario = scenarioById(id);
@@ -256,7 +257,7 @@
 						boundary: bounds,
 						padding: FLOAT_PADDING_PX,
 						apply: ({ availableHeight }) => {
-							element.style.maxHeight = `${Math.max(0, availableHeight)}px`;
+							element.style.maxHeight = `${Math.max(0, Math.min(availableHeight, FLOAT_MAX_HEIGHT_PX))}px`;
 						}
 					})
 				]
@@ -802,7 +803,7 @@
 	{#if desktop && session.selection !== null}
 		<div
 			bind:this={floating}
-			class="absolute top-0 left-0 z-20 flex w-72 flex-col drop-shadow-lg {floatPlaced
+			class="absolute top-0 left-0 z-20 flex w-80 flex-col drop-shadow-lg {floatPlaced
 				? ''
 				: 'opacity-0'}"
 		>

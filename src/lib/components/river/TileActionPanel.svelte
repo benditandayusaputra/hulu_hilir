@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Ban from '@lucide/svelte/icons/ban';
+	import { tick } from 'svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Sheet from '$lib/components/ui/Sheet.svelte';
 	import StatusChip from '$lib/components/ui/StatusChip.svelte';
@@ -39,11 +41,14 @@
 	const session = getSession();
 	const baseId = $props.id();
 	const titleId = `${baseId}-title`;
+	const costSeparator = ', ';
 
 	let panel = $state<HTMLElement | null>(null);
 	let heading = $state<HTMLHeadingElement | null>(null);
 	let sheetOpen = $state(true);
 	let override = $state<string | null>(null);
+	let footerHeight = $state(0);
+	let footer = $state<HTMLDivElement | null>(null);
 
 	const tile = $derived(session.tileAt(cell));
 	const segment = $derived(session.segmentAt(cell.segment));
@@ -99,12 +104,20 @@
 	});
 
 	const groups = $derived(
-		options.reduce<{ name: string; items: Option[] }[]>((list, option) => {
-			const found = list.find((group) => group.name === option.group);
-			if (found) found.items.push(option);
-			else list.push({ name: option.group, items: [option] });
-			return list;
-		}, [])
+		options
+			.reduce<{ name: string; items: Option[] }[]>((list, option) => {
+				const found = list.find((group) => group.name === option.group);
+				if (found) found.items.push(option);
+				else list.push({ name: option.group, items: [option] });
+				return list;
+			}, [])
+			.map((group) => ({
+				name: group.name,
+				items: [
+					...group.items.filter((option) => option.preview.ok),
+					...group.items.filter((option) => !option.preview.ok)
+				]
+			}))
 	);
 
 	const defaultChoice = $derived.by(() => {
@@ -155,6 +168,17 @@
 	});
 
 	$effect(() => {
+		const picked = override;
+		if (picked === null) return;
+		void tick().then(() => {
+			const row = document.getElementById(`${baseId}-${picked}`)?.parentElement;
+			if (row === null || row === undefined || footer === null) return;
+			row.style.scrollMarginBottom = `${footer.offsetHeight + 8}px`;
+			row.scrollIntoView({ block: 'nearest' });
+		});
+	});
+
+	$effect(() => {
 		if (!inline && !sheetOpen) onclose();
 	});
 </script>
@@ -190,15 +214,16 @@
 			{/if}
 		</div>
 
-		<fieldset class="flex flex-col gap-2">
+		<fieldset class="flex flex-col gap-3">
 			<legend class="mb-1 font-medium">{lab.chooseAction}</legend>
 			{#each groups as group (group.name)}
-				<div class="flex flex-col gap-1">
-					<span class="text-sm font-medium text-ink-muted">{group.name}</span>
+				<div class="flex flex-col gap-0.5">
+					<span class="px-2 text-sm font-medium text-ink-muted">{group.name}</span>
 					{#each group.items as option (option.id)}
 						{@const id = `${baseId}-${option.id}`}
 						<div
-							class="flex items-start gap-2 rounded-[var(--radius-control)] px-2 py-1 has-[:checked]:bg-surface-2"
+							class="flex items-start gap-2 rounded-[var(--radius-control)] px-2 py-1.5 has-[:checked]:bg-surface-2"
+							style:scroll-margin-bottom="{footerHeight + 8}px"
 						>
 							<input
 								{id}
@@ -208,19 +233,30 @@
 								checked={chosenId === option.id}
 								onchange={() => (override = option.id)}
 								aria-describedby={option.preview.ok ? undefined : `${id}-reason`}
-								class="mt-1.5 size-4 shrink-0 accent-primary"
+								class="mt-1 size-4 shrink-0 accent-primary"
 							/>
-							<div class="flex flex-col">
-								<label for={id} class="cursor-pointer">
-									{option.label}
+							<div class="flex min-w-0 flex-1 flex-col gap-0.5">
+								<label
+									for={id}
+									class="flex cursor-pointer items-baseline justify-between gap-3 leading-snug {option
+										.preview.ok
+										? ''
+										: 'text-ink-muted'}"
+								>
+									<span>{option.label}</span>
 									{#if option.tool !== null && option.preview.cost > 0}
-										<span class="text-sm text-ink-muted">
-											({formatBillions(option.preview.cost)})
-										</span>
+										<span data-numeric class="shrink-0 text-sm whitespace-nowrap text-ink-muted"
+											><span class="sr-only">{costSeparator}</span>{formatBillions(
+												option.preview.cost
+											)}</span
+										>
 									{/if}
 								</label>
 								{#if !option.preview.ok}
-									<span id="{id}-reason" class="text-sm text-danger">{option.preview.reason}</span>
+									<span id="{id}-reason" class="flex items-start gap-1.5 text-sm text-ink-muted">
+										<Ban size={14} aria-hidden="true" class="mt-0.5 shrink-0" />
+										{option.preview.reason}
+									</span>
 								{/if}
 							</div>
 						</div>
@@ -232,40 +268,58 @@
 			{/if}
 		</fieldset>
 
-		{#if chosen !== null}
-			<dl
-				class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-[var(--radius-control)] bg-surface-2 p-3 text-sm"
-			>
-				<dt class="font-medium">{lab.effect}</dt>
-				<dd>{chosen.tool !== null ? toolEffect(chosen.tool) : lab.dismantleGroup}</dd>
-				<dt class="font-medium">{lab.buildCost}</dt>
-				<dd data-numeric>
-					{chosen.preview.cost === 0 ? lab.free : formatBillions(chosen.preview.cost)}
-				</dd>
-				{#if chosen.tool !== null}
-					<dt class="font-medium">{lab.upkeepCost}</dt>
-					<dd data-numeric>
-						{toolUpkeep(chosen.tool) === 0
-							? lab.free
-							: `${formatBillions(toolUpkeep(chosen.tool))} ${lab.perMonth}`}
-					</dd>
-					<dt class="font-medium">{lab.leadTime}</dt>
-					<dd>{leadText(chosen.tool)}</dd>
+		<div
+			bind:this={footer}
+			bind:offsetHeight={footerHeight}
+			data-action-footer
+			class="sticky -mx-4 -mb-4 flex flex-col gap-3 border-t-[1.5px] border-ink/10 bg-surface px-4 pt-3 pb-4 {inline
+				? '-bottom-3.5'
+				: '-bottom-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 sm:pb-6'}"
+		>
+			{#if chosen !== null}
+				<dl class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
+					<div class="col-span-2">
+						<dt class="text-ink-muted">{lab.effect}</dt>
+						<dd>{chosen.tool !== null ? toolEffect(chosen.tool) : lab.dismantleGroup}</dd>
+					</div>
+					<div>
+						<dt class="text-ink-muted">{lab.buildCost}</dt>
+						<dd data-numeric class="font-semibold">
+							{chosen.preview.cost === 0 ? lab.free : formatBillions(chosen.preview.cost)}
+						</dd>
+					</div>
+					{#if chosen.tool !== null}
+						<div>
+							<dt class="text-ink-muted">{lab.upkeepCost}</dt>
+							<dd data-numeric class="font-semibold">
+								{toolUpkeep(chosen.tool) === 0
+									? lab.free
+									: `${formatBillions(toolUpkeep(chosen.tool))} ${lab.perMonth}`}
+							</dd>
+						</div>
+						<div>
+							<dt class="text-ink-muted">{lab.leadTime}</dt>
+							<dd class="font-semibold">{leadText(chosen.tool)}</dd>
+						</div>
+					{/if}
+					<div>
+						<dt class="text-ink-muted">{lab.cashAfter}</dt>
+						<dd data-numeric class="font-semibold">
+							{chosen.preview.cashAfter === null
+								? lab.cashUnlimited
+								: formatBillions(chosen.preview.cashAfter)}
+						</dd>
+					</div>
+				</dl>
+			{/if}
+			<div class="flex flex-wrap items-start gap-2">
+				<Button onclick={confirm} unavailableReason={confirmReason}>
+					{chosen?.dismantle !== null && chosen !== null ? lab.dismantle : lab.install}
+				</Button>
+				{#if inline}
+					<Button variant="secondary" onclick={onclose}>{lab.close}</Button>
 				{/if}
-				<dt class="font-medium">{lab.cashAfter}</dt>
-				<dd data-numeric>
-					{chosen.preview.cashAfter === null
-						? lab.cashUnlimited
-						: formatBillions(chosen.preview.cashAfter)}
-				</dd>
-			</dl>
-		{/if}
-
-		<div class="flex flex-wrap gap-2">
-			<Button onclick={confirm} unavailableReason={confirmReason}>
-				{chosen?.dismantle !== null && chosen !== null ? lab.dismantle : lab.install}
-			</Button>
-			<Button variant="secondary" onclick={onclose}>{lab.close}</Button>
+			</div>
 		</div>
 	</div>
 {/snippet}

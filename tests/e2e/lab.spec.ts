@@ -202,6 +202,43 @@ test.describe('Lab: alat, panel aksi, dan waktu', () => {
 		await expect(cell(page, 3, 2)).toHaveAttribute('aria-pressed', 'false');
 	});
 
+	test('tombol Pasang selalu terlihat dan pilihan yang difokus tidak tertutup footer', async ({
+		page
+	}) => {
+		await gotoReady(page, '/lab/desa');
+		await cell(page, 3, 1).click();
+		const panel = page.getByRole('region', { name: 'Segmen 3 Tengah, kiri dekat sungai' });
+		await expect(panel.getByRole('heading', { level: 2 })).toBeFocused();
+		const install = panel.getByRole('button', { name: 'Pasang' });
+		const footer = panel.locator('[data-action-footer]');
+		const visibleIn = async () => {
+			const outer = await panel.boundingBox();
+			const button = await install.boundingBox();
+			return (
+				outer !== null &&
+				button !== null &&
+				button.y >= outer.y &&
+				button.y + button.height <= outer.y + outer.height + 1
+			);
+		};
+		expect(await visibleIn()).toBe(true);
+		const last = panel.getByRole('radio').last();
+		await last.focus();
+		await page.keyboard.press('Space');
+		await expect(last).toBeFocused();
+		await expect(last).toBeChecked();
+		const lastBox = await last.boundingBox();
+		const footerBox = await footer.boundingBox();
+		expect((lastBox?.y ?? 0) + (lastBox?.height ?? 0)).toBeLessThanOrEqual(footerBox?.y ?? 0);
+		expect(await visibleIn()).toBe(true);
+		const reasons = panel.locator('[id$="-reason"]');
+		expect(await reasons.count()).toBeGreaterThan(0);
+		const radios = await panel
+			.getByRole('radio')
+			.evaluateAll((items) => items.map((item) => item.hasAttribute('aria-describedby')));
+		expect(radios.indexOf(true)).toBeGreaterThan(0);
+	});
+
 	test('putar, jeda, kecepatan, dan batalkan aksi bekerja lewat kontrol waktu', async ({
 		page
 	}) => {
