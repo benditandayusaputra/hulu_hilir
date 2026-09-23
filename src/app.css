@@ -25,33 +25,33 @@
 	--radius-control: 8px;
 	--radius-chip: 9999px;
 
-	--color-bg: #f6f1e7;
-	--color-surface: #fffdf8;
-	--color-surface-2: #efe7d8;
-	--color-ink: #1f2a2e;
-	--color-ink-muted: #4b5a5e;
-	--color-primary: #0f6e6e;
-	--color-on-primary: #ffffff;
-	--color-accent: #b5651d;
-	--color-accent-ink: #8a4a12;
-	--color-leaf: #3e7c3a;
-	--color-danger: #b3261e;
-	--color-focus: #0b3d91;
-	--color-focus-halo: #ffffff;
+	--color-bg: light-dark(#f6f1e7, #0f1719);
+	--color-surface: light-dark(#fffdf8, #172226);
+	--color-surface-2: light-dark(#efe7d8, #1e2c31);
+	--color-ink: light-dark(#1f2a2e, #e8efea);
+	--color-ink-muted: light-dark(#4b5a5e, #a9b8b4);
+	--color-primary: light-dark(#0f6e6e, #4fb8b3);
+	--color-on-primary: light-dark(#ffffff, #0f1719);
+	--color-accent: light-dark(#b5651d, #e0a260);
+	--color-accent-ink: light-dark(#8a4a12, #edb77e);
+	--color-leaf: light-dark(#3e7c3a, #7dbe72);
+	--color-danger: light-dark(#b3261e, #f2877e);
+	--color-focus: light-dark(#0b3d91, #ffd84d);
+	--color-focus-halo: light-dark(#ffffff, #0f1719);
 
-	--color-water-good: #5bc0c9;
-	--color-water-light: #a3a860;
-	--color-water-moderate: #a0763a;
-	--color-water-heavy: #3f3229;
-	--color-water-heavy-edge: #3f3229;
+	--color-water-good: light-dark(#5bc0c9, #4aa9b2);
+	--color-water-light: light-dark(#a3a860, #97a05a);
+	--color-water-moderate: light-dark(#a0763a, #9a7240);
+	--color-water-heavy: light-dark(#3f3229, #2b221c);
+	--color-water-heavy-edge: light-dark(#3f3229, #8d7f70);
 
 	--color-outline: #3b2a22;
 	--color-plank-ink: #fff4dc;
-	--color-wood-light: #8a5a2f;
-	--color-wood: #7e5130;
-	--color-wood-dark: #6e4526;
-	--color-wood-grain: #6a4224;
-	--color-wood-edge: #a06b3b;
+	--color-wood-light: light-dark(#8a5a2f, #5a3a22);
+	--color-wood: light-dark(#7e5130, #4a3020);
+	--color-wood-dark: light-dark(#6e4526, #3e2a1e);
+	--color-wood-grain: light-dark(#6a4224, #3a261a);
+	--color-wood-edge: light-dark(#a06b3b, #6a4a30);
 
 	--dur-fast: 150ms;
 	--dur-base: 250ms;
@@ -61,73 +61,17 @@
 	--measure-prose: 68ch;
 }
 
-@layer theme {
-	@media (prefers-color-scheme: dark) {
-		:root:not([data-theme='light']) {
-			--color-bg: #0f1719;
-			--color-surface: #172226;
-			--color-surface-2: #1e2c31;
-			--color-ink: #e8efea;
-			--color-ink-muted: #a9b8b4;
-			--color-primary: #4fb8b3;
-			--color-on-primary: #0f1719;
-			--color-accent: #e0a260;
-			--color-accent-ink: #edb77e;
-			--color-leaf: #7dbe72;
-			--color-danger: #f2877e;
-			--color-focus: #ffd84d;
-			--color-focus-halo: #0f1719;
-			--color-water-good: #4aa9b2;
-			--color-water-light: #97a05a;
-			--color-water-moderate: #9a7240;
-			--color-water-heavy: #2b221c;
-			--color-water-heavy-edge: #8d7f70;
-			--color-wood-light: #5a3a22;
-			--color-wood: #4a3020;
-			--color-wood-dark: #3e2a1e;
-			--color-wood-grain: #3a261a;
-			--color-wood-edge: #6a4a30;
-		}
-	}
-
-	:root[data-theme='dark'] {
-		--color-bg: #0f1719;
-		--color-surface: #172226;
-		--color-surface-2: #1e2c31;
-		--color-ink: #e8efea;
-		--color-ink-muted: #a9b8b4;
-		--color-primary: #4fb8b3;
-		--color-on-primary: #0f1719;
-		--color-accent: #e0a260;
-		--color-accent-ink: #edb77e;
-		--color-leaf: #7dbe72;
-		--color-danger: #f2877e;
-		--color-focus: #ffd84d;
-		--color-focus-halo: #0f1719;
-		--color-water-good: #4aa9b2;
-		--color-water-light: #97a05a;
-		--color-water-moderate: #9a7240;
-		--color-water-heavy: #2b221c;
-		--color-water-heavy-edge: #8d7f70;
-		--color-wood-light: #5a3a22;
-		--color-wood: #4a3020;
-		--color-wood-dark: #3e2a1e;
-		--color-wood-grain: #3a261a;
-		--color-wood-edge: #6a4a30;
-	}
-}
-
 @layer base {
 	:root {
 		color-scheme: light dark;
 		scroll-padding-block: calc(var(--spacing) * 24);
 	}
 
-	:root[data-theme='light'] {
+	[data-theme='light'] {
 		color-scheme: light;
 	}
 
-	:root[data-theme='dark'] {
+	[data-theme='dark'] {
 		color-scheme: dark;
 	}
 
